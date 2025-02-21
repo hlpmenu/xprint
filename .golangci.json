@@ -1,0 +1,23 @@
+{
+    "$schema": "https://golangci-lint.run/jsonschema/golangci.jsonschema.json",
+
+    "linters": {
+        "fast": true,
+        "enable": [
+            "gocritic",
+            "gosec",
+            "perfsprint",
+            "misspell",
+            "revive",
+            "prealloc",
+            "errname"
+        ]
+    },
+    "run": {
+        "go": "1.24.0"
+    },
+    "linters-settings": {
+
+    },
+    "issues": { "exclude": [ "G114" ] }
+}
