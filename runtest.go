@@ -24,6 +24,11 @@ type Timer struct {
 	start time.Time
 }
 
+type funcDebugResult struct {
+	Function string
+	Timing   time.Duration
+}
+
 // StartTimer initializes and returns a new Timer
 func StartTimer() Timer {
 	return Timer{start: time.Now()}
@@ -35,13 +40,11 @@ func (t Timer) Elapsed() time.Duration {
 }
 
 // Log timing for operations
-func logTiming(operation, function string, elapsed time.Duration) {
-	logger.LogRedf("================================")
-	if function == "xprint.Printf()" {
-		logger.LogPurplef("Operation: %s\nFunc: %s\nTiming: %v\n", operation, function, elapsed)
-	} else if function == "fmt.Sprintf()" {
-		logger.LogOrangef("Operation: %s\nFunc: %s\nTiming: %v\n", operation, function, elapsed)
-	}
+func logTiming(operation string, A, B *funcDebugResult) {
+	logger.Logf("\n======================================================\nRESULT FOR: %s\n======================================================", operation)
+	logger.LogPurplef("Operation: %s\nFunc: %s\nTiming: %v\n", operation, A.Function, A.Timing)
+	logger.LogOrangef("Operation: %s\nFunc: %s\nTiming: %v\n", operation, B.Function, B.Timing)
+	logger.Log("\n=======================================================\n")
 }
 
 func Runtest() {
@@ -54,14 +57,18 @@ func Runtest() {
 	json2, _ := os.ReadFile("/var/web_dev/projects/plexus/run-scripts/detect-run/dummy/1MB.json")
 
 	// Force GC
-	forceGC()
 
 	// Measure xprint.Printf performance
-	timer := StartTimer()
-	StringTestXprint := xprint.Printf("%s \n\nHello world %s", string(json1), string(json2))
-	elapsedXprint := timer.Elapsed()
+	aa := string(json1)
+	bb := string(json2)
 
-	logTiming("Printing large JSON (string)", "xprint.Printf()", elapsedXprint)
+	timer := StartTimer()
+	var StringTestXprint string
+	StringTestXprint = xprint.Printf("%s \n\nHello world %s", aa, bb)
+	xprintResult := &funcDebugResult{
+		Function: "xprint.Printf()",
+		Timing:   timer.Elapsed(),
+	}
 
 	// === Phase 2: Benchmark fmt.Sprintf() ===
 
@@ -70,20 +77,24 @@ func Runtest() {
 	json2b, _ := os.ReadFile("/var/web_dev/projects/plexus/run-scripts/detect-run/dummy/1MB.json")
 
 	// Force GC
-	forceGC()
 
 	// Measure fmt.Sprintf performance
+	a := string(json1b)
+	b := string(json2b)
 	timer = StartTimer()
-	StringTestFmt := fmt.Sprintf("%s \n\nHello world %s", string(json1b), string(json2b))
-	elapsedFmt := timer.Elapsed()
+	var StringTestFmt string
+	StringTestFmt = fmt.Sprintf("%s \n\nHello world %s", a, b)
+	fmtResult := &funcDebugResult{
+		Function: "fmt.Sprintf()",
+		Timing:   timer.Elapsed(),
+	}
 
-	logTiming("Printing large JSON (string)", "fmt.Sprintf()", elapsedFmt)
+	logTiming("Printing large JSON (string)", xprintResult, fmtResult)
 
 	// Validate outputs
 	if StringTestFmt != StringTestXprint {
 		log.Fatal("ERROR: Output mismatch between fmt.Sprintf and xprint.Printf!")
 	}
-	return
 	// === Phase 3: Benchmark JSON as []byte ===
 
 	// Read JSON files again
@@ -95,21 +106,32 @@ func Runtest() {
 
 	// Measure xprint.Printf performance for []byte
 	timer = StartTimer()
-	_ = xprint.Printf("%s \n\nHello world %s", json1c, json2c) // Pass as []byte, no conversion
-	elapsedXprint = timer.Elapsed()
-
-	logTiming("Printing large JSON ([]byte)", "xprint.Printf()", elapsedXprint)
+	xpb := xprint.Printf("%s \n\nHello world %s", json1c, json2c) // Pass as []byte, no conversion
+	xprintByteResult := &funcDebugResult{
+		Function: "xprint.Printf()",
+		Timing:   timer.Elapsed(),
+	}
 
 	// Force GC
 	forceGC()
 
 	// Measure fmt.Sprintf performance for []byte
 	timer = StartTimer()
-	_ = fmt.Sprintf("%s \n\nHello world %s", json1c, json2c) // Pass as []byte, no conversion
-	elapsedFmt = timer.Elapsed()
+	fpb := fmt.Sprintf("%s \n\nHello world %s", json1c, json2c) // Pass as []byte, no conversion
+	fmtByteResult := &funcDebugResult{
+		Function: "fmt.Sprintf()",
+		Timing:   timer.Elapsed(),
+	}
+	if fpb != xpb {
+		logger.LogRedf("len fmt: %d \n len xprint: %d", len(fpb), len(xpb))
+		log.Fatal("ERROR: Output mismatch between fmt.Sprintf and xprint.Printf!")
+	}
 
-	logTiming("Printing large JSON ([]byte)", "fmt.Sprintf()", elapsedFmt)
+	logTiming("Printing large JSON ([]byte)", xprintByteResult, fmtByteResult)
 
+	return
+
+	//nolint:all // Temporarily disabled for string management debugging
 	// === Phase 4: Benchmark LargeInts Helper ===
 	li := largeints.TestWrapper{}
 
@@ -137,8 +159,10 @@ func Runtest() {
 		// Measure xprint.Printf
 		timer = StartTimer()
 		outputXprint := bench.valueFunc()
-		elapsedXprint = timer.Elapsed()
-		logTiming(bench.name, "xprint.Printf()", elapsedXprint)
+		xprintResult := &funcDebugResult{
+			Function: "xprint.Printf()",
+			Timing:   timer.Elapsed(),
+		}
 
 		// Force GC
 		forceGC()
@@ -146,8 +170,12 @@ func Runtest() {
 		// Measure fmt.Sprintf
 		timer = StartTimer()
 		outputFmt := fmt.Sprintf("%v", outputXprint)
-		elapsedFmt = timer.Elapsed()
-		logTiming(bench.name, "fmt.Sprintf()", elapsedFmt)
+		fmtResult := &funcDebugResult{
+			Function: "fmt.Sprintf()",
+			Timing:   timer.Elapsed(),
+		}
+
+		logTiming(bench.name, xprintResult, fmtResult)
 
 		// Validate outputs
 		if fmt.Sprintf("%v", outputXprint) != outputFmt {

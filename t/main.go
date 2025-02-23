@@ -1,7 +1,6 @@
 package xprint
 
 import (
-	"log"
 	"reflect"
 	"strconv"
 	"strings"
@@ -52,10 +51,14 @@ func (b *buffer) write(p []byte) {
 }
 
 func (b *buffer) writeString(s string) {
-	t2 := StartTimer()
+	go func() {
+		logger.Warnf("buf len after write: %dMb", b.LenMB())
+	}()
 	*b = append(*b, s...)
-	t2.Stop("p.printString")
-	logger.Warnf("buf len after write: %dMb", b.LenMB())
+}
+
+func (p *pp) writeStringArg() {
+	p.buf = append(p.buf, p.arg.(string)...)
 
 }
 
@@ -134,22 +137,33 @@ type pp struct {
 	recursing   bool
 }
 
-var ppFree = sync.Pool{
+func (p *pp) argAsString() string {
+	return p.arg.(string)
+}
+
+func (p *pp) ArgIsString() bool {
+	_, ok := p.arg.(string)
+	return ok
+}
+
+var ppFree = &sync.Pool{
 	New: func() any { return new(pp) },
 }
 
 // newPrinter allocates a new pp struct or grabs a cached one.
 func newPrinter() *pp {
 	p := ppFree.Get().(*pp)
-	//p.fmt.init(&p.buf)
+	//p.buf = make([]byte, 0, 1024*1024*17)
+	p.fmt.init(&p.buf)
 	p.visitedPtrs.init()
+	//p.fmt.buf = &p.buf
 	p.recursing = false
 	return p
 }
 
 // free saves used pp structs in ppFree; avoids an allocation per invocation.
 func (p *pp) free() {
-	if cap(p.buf) > 1024*1024 {
+	if cap(p.buf) > 1024*1024*10 {
 		p.buf = nil
 	} else {
 		p.buf = p.buf[:0]
@@ -166,7 +180,7 @@ func Printf(format string, args ...any) string {
 	p := newPrinter()
 	p.doPrintf(format, args)
 	s := string(p.buf)
-	defer p.free()
+	p.free()
 	return s
 }
 
@@ -185,12 +199,15 @@ func parsenum(s string, start, end int) (num int, isnum bool, newi int) {
 func (p *pp) doPrintf(format string, args []any) {
 	end := len(format)
 	argNum := 0
-	t1 := StartTimer()
-	for i := 0; i < end; {
+	i := 0
+	for i < end {
+
 		lasti := i
+
 		for i < end && format[i] != '%' {
 			i++
 		}
+
 		if i > lasti && format[i-1] != '%' {
 			p.buf.writeString(format[lasti:i])
 		}
@@ -204,13 +221,13 @@ func (p *pp) doPrintf(format string, args []any) {
 
 		// Handle %% case
 		if i < end && format[i] == '%' {
-			p.buf.writeByte('%')
+			p.buf.writeRune('%')
 			i++
 			continue
 		}
 
 		p.fmt.clearflags()
-		t1.Stop("Flags")
+
 		// Handle flags
 		for i < end {
 			switch format[i] {
@@ -230,8 +247,6 @@ func (p *pp) doPrintf(format string, args []any) {
 			i++
 		}
 	flags_done:
-		t2 := StartTimer()
-		// Handle width
 		if i < end && format[i] == '*' {
 			i++
 			if argNum >= len(args) {
@@ -253,7 +268,6 @@ func (p *pp) doPrintf(format string, args []any) {
 		} else if i < end {
 			p.fmt.wid, p.fmt.widPresent, i = parsenum(format, i, end)
 		}
-
 		// Handle precision
 		if i < end && format[i] == '.' {
 			i++
@@ -294,7 +308,7 @@ func (p *pp) doPrintf(format string, args []any) {
 		}
 		p.arg = args[argNum]
 		argNum++
-		t2.Stop("pre-switch")
+
 		switch verb {
 		case 'v':
 			p.fmt.plusV = p.fmt.plus
@@ -309,15 +323,15 @@ func (p *pp) doPrintf(format string, args []any) {
 		case 't':
 			p.printBool(p.arg)
 		case 'T':
-			log.Fatal("trigger reflect")
 			p.printReflectType(p.arg)
 		case 'p':
 			p.fmtPointer(p.arg, verb)
 		default:
 			p.buf.writeString(percentBangString)
-			p.buf.writeByte(byte(verb))
+			p.buf.writeRune(verb)
 			p.buf.writeString(noVerbString)
 		}
+
 	}
 }
 
@@ -383,12 +397,10 @@ func (p *pp) handleMethods(verb rune) (handled bool) {
 // printArg formats arg in the manner specified by the verb
 // and appends it to p.buf.
 func (p *pp) printArg(arg any, verb rune) {
-	logger.LogPurplef("Called printArg")
-	p.arg = arg
-	p.value = reflect.ValueOf(arg)
 
 	// Handle nil
-	if arg == nil {
+	if p.arg == nil {
+		logger.Warn("Trigger: arg == nil")
 		switch verb {
 		case 'T', 'v':
 			p.buf.writeString(nilString)
@@ -400,12 +412,6 @@ func (p *pp) printArg(arg any, verb rune) {
 		return
 	}
 
-	// Special case for strings
-	if s, ok := arg.(string); ok && verb != 'T' {
-		p.printString(s)
-		return
-	}
-	logger.LogSuccessf("Went beyong string")
 	// Handle based on type and verb
 	switch verb {
 	case 'T':
@@ -415,9 +421,12 @@ func (p *pp) printArg(arg any, verb rune) {
 		p.printBool(arg)
 		return
 	}
-
 	// Handle by type
 	switch v := arg.(type) {
+	case []byte:
+		p.buf = append(*p.fmt.buf, v...)
+	case string:
+		p.buf = append(p.buf, v...)
 	case bool:
 		p.printBool(v)
 	case int, int8, int16, int32, int64:
@@ -432,6 +441,7 @@ func (p *pp) printArg(arg any, verb rune) {
 		if p.handleMethods(verb) {
 			return
 		}
+		p.value = reflect.ValueOf(p.arg)
 		p.printValue(p.value, verb, 0)
 	}
 }
@@ -806,8 +816,7 @@ func (p *pp) printFloat(v any, verb rune) {
 	p.buf.writeString(str)
 }
 
-func (p *pp) printString(s string) {
-	p.buf.writeString(s)
+func (p *pp) printString() {
 }
 
 func (p *pp) printBool(arg any) {
