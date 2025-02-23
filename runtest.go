@@ -40,11 +40,9 @@ func (t Timer) Elapsed() time.Duration {
 }
 
 // Log timing for operations
-func logTiming(operation string, A, B *funcDebugResult) {
-	logger.Logf("\n======================================================\nRESULT FOR: %s\n======================================================", operation)
-	logger.LogPurplef("Operation: %s\nFunc: %s\nTiming: %v\n", operation, A.Function, A.Timing)
-	logger.LogOrangef("Operation: %s\nFunc: %s\nTiming: %v\n", operation, B.Function, B.Timing)
-	logger.Log("\n=======================================================\n")
+func logTiming(_ string, A, B *funcDebugResult) {
+	logger.LogPurplef("Func:%s\nTiming: %v", A.Function, A.Timing)
+	logger.LogOrangef("Func:%s\nTiming: %v", B.Function, B.Timing)
 }
 
 func Runtest() {
@@ -89,11 +87,16 @@ func Runtest() {
 		Timing:   timer.Elapsed(),
 	}
 
+	if StringTestFmt != StringTestXprint {
+		logger.Logf("len fmt: %d \n len xprint: %d", len(StringTestFmt), len(StringTestXprint))
+		logger.LogErrorf("[STRING]ERROR: Output mismatch between fmt.Sprintf and xprint.Printf!")
+	}
+
 	logTiming("Printing large JSON (string)", xprintResult, fmtResult)
 
 	// Validate outputs
 	if StringTestFmt != StringTestXprint {
-		log.Fatal("ERROR: Output mismatch between fmt.Sprintf and xprint.Printf!")
+		log.Fatal("[[]byte]ERROR: Output mismatch between fmt.Sprintf and xprint.Printf!")
 	}
 	// === Phase 3: Benchmark JSON as []byte ===
 

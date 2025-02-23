@@ -4,7 +4,6 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-	"sync"
 	"unicode/utf8"
 	"unsafe"
 
@@ -23,6 +22,11 @@ const (
 	badWidthString    = "%!(BADWIDTH)"
 	badPrecString     = "%!(BADPREC)"
 	badVerbString     = "%!(BADVERB)"
+	mapString         = "map["
+	panicString       = "(PANIC="
+	extraString       = "%!(EXTRA "
+
+	invReflectString = "<invalid reflect.Value>"
 )
 
 // Digits for formatting
@@ -51,9 +55,6 @@ func (b *buffer) write(p []byte) {
 }
 
 func (b *buffer) writeString(s string) {
-	go func() {
-		logger.Warnf("buf len after write: %dMb", b.LenMB())
-	}()
 	*b = append(*b, s...)
 }
 
@@ -86,6 +87,9 @@ type fmtFlags struct {
 type fmt struct {
 	buf *buffer
 	fmtFlags
+	// intbuf is large enough to store %b of an int64 with a sign and
+	// avoids padding at the end of the struct on 32 bit architectures.
+	intbuf [68]byte
 }
 
 func (f *fmt) init(b *buffer) {
@@ -124,32 +128,6 @@ func (v *visited) visit(p uintptr) bool {
 	return false
 }
 
-// pp is used to store a printer's state
-type pp struct {
-	buf        buffer
-	arg        any
-	value      reflect.Value
-	fmt        fmt
-	reordered  bool
-	goodArgNum bool
-	// Track recursive pointer formatting
-	visitedPtrs visited
-	recursing   bool
-}
-
-func (p *pp) argAsString() string {
-	return p.arg.(string)
-}
-
-func (p *pp) ArgIsString() bool {
-	_, ok := p.arg.(string)
-	return ok
-}
-
-var ppFree = &sync.Pool{
-	New: func() any { return new(pp) },
-}
-
 // newPrinter allocates a new pp struct or grabs a cached one.
 func newPrinter() *pp {
 	p := ppFree.Get().(*pp)
@@ -161,24 +139,11 @@ func newPrinter() *pp {
 	return p
 }
 
-// free saves used pp structs in ppFree; avoids an allocation per invocation.
-func (p *pp) free() {
-	if cap(p.buf) > 1024*1024*10 {
-		p.buf = nil
-	} else {
-		p.buf = p.buf[:0]
-	}
-	p.arg = nil
-	p.value = reflect.Value{}
-	p.visitedPtrs.ptrs = nil
-	p.recursing = false
-	ppFree.Put(p)
-}
-
 // Printf formats according to a format specifier and returns the resulting string
 func Printf(format string, args ...any) string {
 	p := newPrinter()
-	p.doPrintf(format, args)
+	//	p.doPrintf(format, args)
+	p.OlddoPrintf(format, args)
 	s := string(p.buf)
 	p.free()
 	return s
@@ -193,146 +158,6 @@ func parsenum(s string, start, end int) (num int, isnum bool, newi int) {
 		isnum = true
 	}
 	return
-}
-
-// doPrintf is the core printf implementation. It formats into p.buf.
-func (p *pp) doPrintf(format string, args []any) {
-	end := len(format)
-	argNum := 0
-	i := 0
-	for i < end {
-
-		lasti := i
-
-		for i < end && format[i] != '%' {
-			i++
-		}
-
-		if i > lasti && format[i-1] != '%' {
-			p.buf.writeString(format[lasti:i])
-		}
-
-		if i >= end {
-			break
-		}
-
-		// Process one verb
-		i++
-
-		// Handle %% case
-		if i < end && format[i] == '%' {
-			p.buf.writeRune('%')
-			i++
-			continue
-		}
-
-		p.fmt.clearflags()
-
-		// Handle flags
-		for i < end {
-			switch format[i] {
-			case '#':
-				p.fmt.sharp = true
-			case '0':
-				p.fmt.zero = true
-			case '+':
-				p.fmt.plus = true
-			case '-':
-				p.fmt.minus = true
-			case ' ':
-				p.fmt.space = true
-			default:
-				goto flags_done
-			}
-			i++
-		}
-	flags_done:
-		if i < end && format[i] == '*' {
-			i++
-			if argNum >= len(args) {
-				p.buf.writeString(missingString)
-				break
-			}
-			width, ok := args[argNum].(int)
-			if !ok {
-				p.buf.writeString(badWidthString)
-			} else {
-				p.fmt.wid = width
-				p.fmt.widPresent = true
-				if width < 0 {
-					p.fmt.minus = true
-					p.fmt.wid = -width
-				}
-			}
-			argNum++
-		} else if i < end {
-			p.fmt.wid, p.fmt.widPresent, i = parsenum(format, i, end)
-		}
-		// Handle precision
-		if i < end && format[i] == '.' {
-			i++
-			if i < end && format[i] == '*' {
-				i++
-				if argNum >= len(args) {
-					p.buf.writeString(missingString)
-					break
-				}
-				prec, ok := args[argNum].(int)
-				if !ok {
-					p.buf.writeString(badPrecString)
-				} else {
-					p.fmt.prec = prec
-					p.fmt.precPresent = true
-					if prec < 0 {
-						p.fmt.precPresent = false
-					}
-				}
-				argNum++
-			} else {
-				p.fmt.prec, p.fmt.precPresent, i = parsenum(format, i, end)
-			}
-		}
-
-		if i >= end {
-			p.buf.writeString(noVerbString)
-			break
-		}
-
-		verb := rune(format[i])
-		i++
-
-		// Handle argument
-		if argNum >= len(args) {
-			p.buf.writeString(missingString)
-			break
-		}
-		p.arg = args[argNum]
-		argNum++
-
-		switch verb {
-		case 'v':
-			p.fmt.plusV = p.fmt.plus
-			p.fmt.sharpV = p.fmt.sharp
-			p.printArg(p.arg, verb)
-		case 'd', 'o', 'O', 'x', 'X', 'b', 'B':
-			p.printArg(p.arg, verb)
-		case 'f', 'F', 'g', 'G', 'e', 'E':
-			p.printArg(p.arg, verb)
-		case 's', 'q':
-			p.printArg(p.arg, verb)
-		case 't':
-			p.printBool(p.arg)
-		case 'T':
-			p.printReflectType(p.arg)
-		case 'p':
-			p.fmtPointer(p.arg, verb)
-		default:
-			p.buf.writeString(percentBangString)
-			p.buf.writeRune(verb)
-			p.buf.writeString(noVerbString)
-		}
-
-	}
 }
 
 // Stringer is implemented by any value that has a String method.
@@ -399,7 +224,7 @@ func (p *pp) handleMethods(verb rune) (handled bool) {
 func (p *pp) printArg(arg any, verb rune) {
 
 	// Handle nil
-	if p.arg == nil {
+	if arg == nil {
 		logger.Warn("Trigger: arg == nil")
 		switch verb {
 		case 'T', 'v':
@@ -413,6 +238,7 @@ func (p *pp) printArg(arg any, verb rune) {
 	}
 
 	// Handle based on type and verb
+	logger.Logf("verb: %s", string(verb))
 	switch verb {
 	case 'T':
 		p.printReflectType(arg)
@@ -420,6 +246,9 @@ func (p *pp) printArg(arg any, verb rune) {
 	case 't':
 		p.printBool(arg)
 		return
+	case 'p':
+		logger.Printf("Trigger: p in printarg")
+		p.fmtPointer(reflect.ValueOf(arg), verb)
 	}
 	// Handle by type
 	switch v := arg.(type) {
@@ -428,7 +257,13 @@ func (p *pp) printArg(arg any, verb rune) {
 	case string:
 		p.buf = append(p.buf, v...)
 	case bool:
-		p.printBool(v)
+		switch verb {
+		case 't':
+			p.printBool(v)
+		case 's':
+			boolstr := percentBangString + "s(" + "bool" + "=" + strconv.FormatBool(v) + ")"
+			p.buf = append(p.buf, boolstr...)
+		}
 	case int, int8, int16, int32, int64:
 		p.printInt(v, 10, verb)
 	case uint, uint8, uint16, uint32, uint64, uintptr:
@@ -841,14 +676,23 @@ func (p *pp) fmtPointer(value any, verb rune) {
 	var u uintptr
 	switch v := value.(type) {
 	case unsafe.Pointer:
+		logger.Warn("Trigger: unsafe.Pointer")
 		u = uintptr(v)
 	case uintptr:
+		logger.Warn("Trigger: uintptr")
 		u = v
 	case reflect.Value:
+		logger.Warn("Trigger: reflect.Value")
 		u = v.Pointer()
 	default:
-		p.buf.writeString(nilParenString)
-		return
+		logger.Warnf("Trigger: default with verb: %s", string(verb))
+		switch verb {
+		case 's', 'p', 'v':
+			// Do nothing
+		default:
+			p.buf.writeString(nilParenString)
+			return
+		}
 	}
 
 	p.buf.writeByte('0')
@@ -891,4 +735,44 @@ func (p *pp) printComplex(v any, verb rune) {
 	}
 	p.buf.writeByte('i')
 	p.buf.writeByte(')')
+}
+
+// intFromArg gets the argNumth element of a. On return, isInt reports whether the argument has integer type.
+func intFromArg(a []any, argNum int) (num int, isInt bool, newArgNum int) {
+	newArgNum = argNum
+	if argNum < len(a) {
+		num, isInt = a[argNum].(int) // Almost always OK.
+		if !isInt {
+			// Work harder.
+			switch v := reflect.ValueOf(a[argNum]); v.Kind() {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				n := v.Int()
+				if int64(int(n)) == n {
+					num = int(n)
+					isInt = true
+				}
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+				n := v.Uint()
+				if int64(n) >= 0 && uint64(int(n)) == n {
+					num = int(n)
+					isInt = true
+				}
+			default:
+				// Already 0, false.
+			}
+		}
+		newArgNum = argNum + 1
+		if tooLarge(num) {
+			num = 0
+			isInt = false
+		}
+	}
+	return
+}
+
+// tooLarge reports whether the magnitude of the integer is
+// too large to be used as a formatting width or precision.
+func tooLarge(x int) bool {
+	const max int = 1e6
+	return x > max || x < -max
 }

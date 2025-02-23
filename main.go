@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"net/http"
 	_ "net/http/pprof"
 	"os"
 )
@@ -17,9 +16,13 @@ func main() {
 		Runtest()
 	} else if os.Args[1] == "quick" {
 		Quicktest()
+	} else if os.Args[1] == "newbench" {
+		NewBenchmark()
+	} else if os.Args[1] == "bigjson" {
+		BigJSONTest()
+	} else if os.Args[1] == "mixedtype" {
+		MixedTypeTest()
+	} else if os.Args[1] == "simple" {
+		RunAll()
 	}
-	go func() {
-		log.Println(http.ListenAndServe("localhost:6060", nil))
-	}()
-
 }

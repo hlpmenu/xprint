@@ -27,6 +27,85 @@ var (
 	precomputedDeep   = generateDeeplyNestedStruct()
 )
 
+func RandomNum() int {
+	n := rng.Intn(10)
+	if n < 2 {
+		return n + 2
+	}
+	return n
+}
+
+func RandomNumN(n int) int {
+	newn := rng.Intn(n)
+	if newn < 2 {
+		return newn + 2
+	}
+	return newn
+}
+
+func RandomBool() bool {
+	return rng.Intn(2) == 1
+}
+
+func LargeString() string {
+	// Generate a 5MB string (5 * 1024 * 1024 bytes)
+	size := (3 + rng.Intn(8)) * 1024 * 1024 // Random size between 3MB and 10MB
+	var builder strings.Builder
+	builder.Grow(size)
+
+	// Add some randomness and work to prevent optimization
+	chars := "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	buf := make([]byte, 1024)
+
+	for i := 0; i < size; i += len(buf) {
+		for j := range buf {
+			// Mix in some computation to avoid optimization
+			idx := (i + j*17) % len(chars)
+			buf[j] = chars[idx]
+		}
+		builder.Write(buf)
+	}
+
+	// Do some extra work
+	result := builder.String()
+	tmp := strings.ToUpper(result[:100]) + result[100:]
+	return tmp
+}
+
+func LargeStringN(n int) string {
+	if n <= 0 {
+		return ""
+	}
+
+	var builder strings.Builder
+	builder.Grow(n)
+
+	// Add some randomness and work to prevent optimization
+	chars := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	buf := make([]byte, 1024)
+
+	for i := 0; i < n; i += len(buf) {
+		remaining := n - i
+		if remaining < len(buf) {
+			buf = buf[:remaining]
+		}
+		for j := range buf {
+			// Mix in some computation to avoid optimization
+			idx := (i + j*23) % len(chars)
+			buf[j] = chars[idx]
+		}
+		builder.Write(buf)
+	}
+
+	// Do some extra work
+	result := builder.String()
+	if len(result) > 100 {
+		tmp := strings.ToUpper(result[:100]) + result[100:]
+		return tmp
+	}
+	return strings.ToUpper(result)
+}
+
 // Inefficient retrieval methods
 type TestWrapper struct{}
 
