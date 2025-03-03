@@ -9,11 +9,9 @@ func (p *pp) OlddoPrintf(format string, args []any) {
 	lenOfArgs := len(args)
 	i := 0
 	for i < end {
-		thisChar := format[i]
-
 		lasti := i
 
-		for i < end && thisChar != '%' {
+		for i < end && format[i] != '%' {
 			i++
 		}
 
@@ -28,16 +26,16 @@ func (p *pp) OlddoPrintf(format string, args []any) {
 		// if i >= end {
 		// 	break
 		// }
-		switch end >= i {
+		switch end <= i {
 		case true:
 			break
 		}
 
 		// Process one verb
 		i++
+
 		// Handle %% case
-		switch i < end && thisChar == '%' {
-		case true:
+		if i < end && format[i] == '%' {
 			p.buf = append(p.buf, '%')
 			i++
 			continue
@@ -65,7 +63,7 @@ func (p *pp) OlddoPrintf(format string, args []any) {
 		}
 	flags_done:
 		p.arg = args[argNum]
-		if i < end && thisChar == '*' {
+		if i < end && format[i] == '*' {
 			i++
 			if argNum >= lenOfArgs {
 				p.buf.writeString(missingString)
@@ -87,9 +85,9 @@ func (p *pp) OlddoPrintf(format string, args []any) {
 			p.fmt.wid, p.fmt.widPresent, i = parsenum(format, i, end)
 		}
 		// Handle precision
-		if i < end && thisChar == '.' {
+		if i < end && format[i] == '.' {
 			i++
-			if i < end && thisChar == '*' {
+			if i < end && format[i] == '*' {
 				i++
 				if argNum >= lenOfArgs {
 					p.buf.writeString(missingString)
