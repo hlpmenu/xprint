@@ -231,7 +231,7 @@ func (p *pp) printArg(arg any, verb rune) {
 			p.buf.writeString(nilString)
 		default:
 			p.buf.writeString(percentBangString)
-			p.buf.writeByte(byte(verb))
+			p.buf = append(p.buf, byte(verb))
 			p.buf.writeString(nilString)
 		}
 		return
@@ -603,7 +603,7 @@ func (f *fmt) pad(s string) {
 
 // ... other supporting methods copied from fmt package and adapted ...
 
-func (p *pp) printInt(v any, base int, verb rune) {
+func (p *pp) printIntOld(v any, base int, verb rune) {
 	var str string
 	switch v := v.(type) {
 	case int:
