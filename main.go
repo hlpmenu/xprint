@@ -1,28 +1,57 @@
-package main
+package xprint
 
 import (
-	"log"
-	_ "net/http/pprof"
-	"os"
+	"errors"
+	"io"
+	"strconv"
+	"strings"
 )
 
-func main() {
-	args := os.Args[0:]
+// Printf formats according to a format specifier and returns the resulting string
+func Printf(format string, args ...any) string {
+	// Fast path for simple "%s" formatting with string arguments
+	if onlyContainsStringPlaceholders(format) && allArgsAreStringLike(args) {
+		return fastStringFormat(format, args)
+	}
 
-	if len(args) < 2 {
-		log.Fatal("Need a arg")
+	p := newPrinter()
+	p.printf(format, args)
+	s := string(p.buf)
+	p.free()
+	return s
+}
+
+func Sprintf(format string, args ...any) string {
+	return Printf(format, args...)
+}
+
+func Fprintf(w io.Writer, format string, args ...any) (n int, err error) {
+	p := newPrinter()
+	p.printf(format, args)
+	n, err = w.Write(p.buf)
+	p.free()
+	return
+}
+
+func BigCocncat(s ...string) string {
+	var b strings.Builder
+	for _, s := range s {
+		b.WriteString(s)
 	}
-	if os.Args[1] == "bench" {
-		Runtest()
-	} else if os.Args[1] == "quick" {
-		Quicktest()
-	} else if os.Args[1] == "newbench" {
-		NewBenchmark()
-	} else if os.Args[1] == "bigjson" {
-		BigJSONTest()
-	} else if os.Args[1] == "mixedtype" {
-		MixedTypeTest()
-	} else if os.Args[1] == "simple" {
-		RunAll()
+	return b.String()
+}
+
+var ErrInvalidBool = errors.New("xprint: cant print as bool")
+
+func PrintBool(b bool) string {
+	switch b {
+	case true:
+		return "true"
+	default:
+		return "false"
 	}
+}
+
+func PrintInt(i int) string {
+	return strconv.Itoa(i)
 }
