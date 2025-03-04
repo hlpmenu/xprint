@@ -139,16 +139,6 @@ func newPrinter() *pp {
 	return p
 }
 
-// Printf formats according to a format specifier and returns the resulting string
-func Printf(format string, args ...any) string {
-	p := newPrinter()
-	//	p.doPrintf(format, args)
-	p.OlddoPrintf(format, args)
-	s := string(p.buf)
-	p.free()
-	return s
-}
-
 func parsenum(s string, start, end int) (num int, isnum bool, newi int) {
 	if start >= end {
 		return 0, false, end
@@ -332,7 +322,7 @@ func (p *pp) printValue(v reflect.Value, verb rune, prec int) {
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		p.printInt(v.Uint(), 10, verb)
 	case reflect.Float32, reflect.Float64:
-		p.printFloat(v.Float(), verb)
+		p.printFloat(v, verb)
 	case reflect.String:
 		p.fmt.fmtString(v.String())
 	case reflect.Slice:
