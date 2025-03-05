@@ -19,5 +19,5 @@
     "linters-settings": {
 
     },
-    "issues": { "exclude": [ "G114" ] }
+    "issues": { "exclude": [ "G114","singleCaseSwitch" ] }
 }
