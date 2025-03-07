@@ -165,9 +165,6 @@ func TestFloats() {
 	logger.Log("Testing float formatting issues...")
 	LogLine()
 
-	// Track mismatches but don't exit with error
-	mismatchFound := false
-
 	// Test raw float constants (interface{} type inference)
 	logger.Log("Test 1: Raw float constants as interface{} arguments")
 
@@ -177,7 +174,7 @@ func TestFloats() {
 	logger.Log("fmt attempt 1: '" + fmt1 + "'")
 	logger.Log("fmt attempt 2: '" + fmt2 + "'")
 	if fmt1 != fmt2 {
-		logger.Log("fmt inconsistent with itself!")
+		logger.LogErrorf("fmt inconsistent with itself!")
 	} else {
 		logger.Log("fmt consistent with itself")
 	}
@@ -188,7 +185,7 @@ func TestFloats() {
 	logger.Log("xprint attempt 1: '" + xprint1 + "'")
 	logger.Log("xprint attempt 2: '" + xprint2 + "'")
 	if xprint1 != xprint2 {
-		logger.Log("xprint inconsistent with itself!")
+		logger.LogErrorf("xprint inconsistent with itself!")
 	} else {
 		logger.Log("xprint consistent with itself")
 	}
@@ -198,8 +195,7 @@ func TestFloats() {
 	logger.Log("fmt output: '" + fmt1 + "'")
 	logger.Log("xprint output: '" + xprint1 + "'")
 	if fmt1 != xprint1 {
-		logger.Log("MISMATCH: fmt vs xprint")
-		mismatchFound = true
+		logger.LogErrorf("MISMATCH: fmt vs xprint for raw float")
 	} else {
 		logger.Log("fmt and xprint match")
 	}
@@ -224,8 +220,7 @@ func TestFloats() {
 	logger.Log("fmt output: '" + fmt1 + "'")
 	logger.Log("xprint output: '" + xprint1 + "'")
 	if fmt1 != xprint1 {
-		logger.Log("MISMATCH for float32")
-		mismatchFound = true
+		logger.LogErrorf("MISMATCH for float32")
 	} else {
 		logger.Log("fmt and xprint match for float32")
 	}
@@ -250,8 +245,7 @@ func TestFloats() {
 	logger.Log("fmt output: '" + fmt1 + "'")
 	logger.Log("xprint output: '" + xprint1 + "'")
 	if fmt1 != xprint1 {
-		logger.Log("MISMATCH for float64")
-		mismatchFound = true
+		logger.LogErrorf("MISMATCH for float64")
 	} else {
 		logger.Log("fmt and xprint match for float64")
 	}
@@ -277,8 +271,8 @@ func TestFloats() {
 		logger.Log("xprint output: '" + xprint1 + "'")
 
 		if fmt1 != xprint1 {
-			logger.Log("MISMATCH for format " + prec)
-			mismatchFound = true
+			// Only skip the map case, all others should be exact matches
+			logger.LogErrorf("MISMATCH for format " + prec)
 		} else {
 			logger.Log("Match for format " + prec)
 		}
@@ -297,23 +291,9 @@ func TestFloats() {
 	logger.Log("xprint slice float: '" + xprint1 + "'")
 
 	if fmt1 != xprint1 {
-		logger.Log("MISMATCH for slice float")
-		mismatchFound = true
+		logger.LogErrorf("MISMATCH for slice float")
 	} else {
 		logger.Log("fmt and xprint match for slice float")
 	}
 	LogLine()
-
-	// Summary
-	if mismatchFound {
-		logger.Log("SUMMARY: Some formatting mismatches were found. This is expected for float values with default precision.")
-		logger.Log("The xprint library appears to truncate floating point numbers to integers when using %f, %g, or %e without explicit precision.")
-		logger.Log("This behavior differs from fmt which uses 6 digits by default.")
-		logger.Log("When using explicit precision (%.2f, etc), both libraries behave identically.")
-	} else {
-		logger.Log("SUMMARY: All float formatting tests passed! No mismatches found.")
-	}
-
-	// Note that we don't exit with an error code even if mismatches were found
-	// This is an informational test to document the behavior
 }
