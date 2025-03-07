@@ -12,17 +12,32 @@ func main() {
 	if len(args) < 2 {
 		log.Fatal("Need a arg")
 	}
-	if os.Args[1] == "bench" {
+
+	// Use the arg variable from above, not directly os.Args
+	arg := args[1]
+
+	switch arg {
+	case "bench":
 		Runtest()
-	} else if os.Args[1] == "quick" {
+	case "quick":
 		Quicktest()
-	} else if os.Args[1] == "newbench" {
+	case "newbench":
 		NewBenchmark()
-	} else if os.Args[1] == "bigjson" {
+	case "bigjson":
 		BigJSONTest()
-	} else if os.Args[1] == "mixedtype" {
+	case "mixedtype":
 		MixedTypeTest()
-	} else if os.Args[1] == "simple" {
+	case "validate-printf":
 		RunAll()
+	case "validate-errorf":
+		RunErrorfTests()
+	case "nil-args-test":
+		RunNilCheckTests()
+	case "empty-args-bench":
+		EmptyArgsBenchmark()
+	case "types-bench":
+		TypesBenchmark()
+	case "test-floats":
+		TestFloats()
 	}
 }

@@ -3,8 +3,6 @@ package xprint
 import (
 	"reflect"
 	"strconv"
-
-	"gopkg.hlmpn.dev/pkg/go-logger"
 )
 
 // printArg formats arg in the manner specified by the verb
@@ -25,7 +23,6 @@ func (p *printer) printArg(arg any, verb rune) {
 	}
 
 	// Handle based on type and verb
-	logger.Logf("verb: %s", string(verb))
 	switch verb {
 	case 'T':
 		p.printReflectType(arg)

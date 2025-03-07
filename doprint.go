@@ -1,6 +1,8 @@
 package xprint
 
-import "reflect"
+import (
+	"reflect"
+)
 
 // doPrintf is the core printf implementation. It formats into p.buf.
 func (p *printer) printf(format string, args []any) {

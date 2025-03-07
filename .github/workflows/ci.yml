@@ -23,9 +23,13 @@ jobs:
     - name: Build validation tools
       run: cd validation && go build -o validation.bin .
 
-    - name: Run simple tests
-      run: cd validation && ./validation.bin simple
-      # This will automatically fail the CI if the simple tests fail with exit code 1
+    - name: Run printf validation tests
+      run: cd validation && ./validation.bin validate-printf
+      # This will automatically fail the CI if the printf validation tests fail with exit code 1
+
+    - name: Run errorf validation tests
+      run: cd validation && ./validation.bin validate-errorf
+      # This will test the Errorf functionality
 
     - name: Run benchmark comparison
       run: cd validation && ./validation.bin newbench

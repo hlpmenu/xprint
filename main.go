@@ -9,6 +9,11 @@ import (
 
 // Printf formats according to a format specifier and returns the resulting string
 func Printf(format string, args ...any) string {
+	// Fast path for no arguments - just return the format string as-is
+	if len(args) == 0 {
+		return format
+	}
+
 	// Fast path for simple "%s" formatting with string arguments
 	if onlyContainsStringPlaceholders(format) && allArgsAreStringLike(args) {
 		return fastStringFormat(format, args)
@@ -26,6 +31,11 @@ func Sprintf(format string, args ...any) string {
 }
 
 func Fprintf(w io.Writer, format string, args ...any) (n int, err error) {
+	// Fast path for no arguments - just write the format string as-is
+	if len(args) == 0 {
+		return w.Write([]byte(format))
+	}
+
 	p := newPrinter()
 	p.printf(format, args)
 	n, err = w.Write(p.buf)
