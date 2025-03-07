@@ -1,0 +1,1642 @@
+[33mcommit bc582e64a4768a59d97cea80fb418caa15b72fbd[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mtest[m[33m, [m[1;33mtag: [m[1;33m0.0.1[m[33m)[m
+Author: oli <oli@hlmpn.dev>
+Date:   Wed Mar 5 20:58:29 2025 +0100
+
+    final
+
+[1mdiff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml[m
+[1mnew file mode 100644[m
+[1mindex 0000000..034f53e[m
+[1m--- /dev/null[m
+[1m+++ b/.github/workflows/ci.yml[m
+[36m@@ -0,0 +1,32 @@[m
+[32m+[m[32mname: CI[m
+[32m+[m
+[32m+[m[32mon:[m
+[32m+[m[32m  push:[m
+[32m+[m[32m    branches: [ main, master ][m
+[32m+[m[32m  pull_request:[m
+[32m+[m[32m    branches: [ main, master ][m
+[32m+[m
+[32m+[m[32mjobs:[m
+[32m+[m[32m  test:[m
+[32m+[m[32m    runs-on: ubuntu-latest[m
+[32m+[m[32m    steps:[m
+[32m+[m[32m    - uses: actions/checkout@v3[m
+[32m+[m
+[32m+[m[32m    - name: Set up Go[m
+[32m+[m[32m      uses: actions/setup-go@v4[m
+[32m+[m[32m      with:[m
+[32m+[m[32m        go-version: '1.24'[m
+[32m+[m
+[32m+[m[32m    - name: Install dependencies[m
+[32m+[m[32m      run: go mod download[m
+[32m+[m
+[32m+[m[32m    - name: Build validation tools[m
+[32m+[m[32m      run: cd validation && go build -o validation.bin .[m
+[32m+[m
+[32m+[m[32m    - name: Run simple tests[m
+[32m+[m[32m      run: cd validation && ./validation.bin simple[m
+[32m+[m[32m      # This will automatically fail the CI if the simple tests fail with exit code 1[m
+[32m+[m
+[32m+[m[32m    - name: Run benchmark comparison[m
+[32m+[m[32m      run: cd validation && ./validation.bin newbench[m
+[32m+[m[32m      # This runs the benchmarks but doesn't fail the build if the benchmarks are slower[m[41m [m
+\ No newline at end of file[m
+[1mdiff --git a/.golangci.json b/.golangci.json[m
+[1mindex f4f02e6..770a664 100644[m
+[1m--- a/.golangci.json[m
+[1m+++ b/.golangci.json[m
+[36m@@ -19,5 +19,5 @@[m
+     "linters-settings": {[m
+ [m
+     },[m
+[31m-    "issues": { "exclude": [ "G114" ] }[m
+[32m+[m[32m    "issues": { "exclude": [ "G114","singleCaseSwitch" ] }[m
+ }[m
+\ No newline at end of file[m
+[1mdiff --git a/LICENSE b/LICENSE[m
+[1mnew file mode 100644[m
+[1mindex 0000000..20504fa[m
+[1m--- /dev/null[m
+[1m+++ b/LICENSE[m
+[36m@@ -0,0 +1,21 @@[m
+[32m+[m[32mMIT License[m
+[32m+[m
+[32m+[m[32mCopyright (c) 2024 hlmpn ab[m
+[32m+[m
+[32m+[m[32mPermission is hereby granted, free of charge, to any person obtaining a copy[m
+[32m+[m[32mof this software and associated documentation files (the "Software"), to deal[m
+[32m+[m[32min the Software without restriction, including without limitation the rights[m
+[32m+[m[32mto use, copy, modify, merge, publish, distribute, sublicense, and/or sell[m
+[32m+[m[32mcopies of the Software, and to permit persons to whom the Software is[m
+[32m+[m[32mfurnished to do so, subject to the following conditions:[m
+[32m+[m
+[32m+[m[32mThe above copyright notice and this permission notice shall be included in all[m
+[32m+[m[32mcopies or substantial portions of the Software.[m
+[32m+[m
+[32m+[m[32mTHE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR[m
+[32m+[m[32mIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,[m
+[32m+[m[32mFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE[m
+[32m+[m[32mAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER[m
+[32m+[m[32mLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,[m
+[32m+[m[32mOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE[m
+[32m+[m[32mSOFTWARE.[m[41m [m
+\ No newline at end of file[m
+[1mdiff --git a/README.md b/README.md[m
+[1mnew file mode 100644[m
+[1mindex 0000000..7e70a15[m
+[1m--- /dev/null[m
+[1m+++ b/README.md[m
+[36m@@ -0,0 +1,73 @@[m
+[32m+[m[32m# xprint[m
+[32m+[m
+[32m+[m[32mA high-performance string formatting package for Go that provides significant performance improvements over the standard `fmt` package.[m
+[32m+[m
+[32m+[m[32m## Features[m
+[32m+[m
+[32m+[m[32m- **High Performance**: 40-47% faster than `fmt.Sprintf` in benchmark tests[m
+[32m+[m[32m- **API Compatible**: Drop-in replacement for `fmt.Sprintf` with the same formatting verbs[m
+[32m+[m[32m- **Specialized String Handling**: Optimized for common string formatting scenarios[m
+[32m+[m
+[32m+[m[32m## Installation[m
+[32m+[m
+[32m+[m[32m```bash[m
+[32m+[m[32mgo get gopkg.hlmpn.dev/pkg/xprint[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m## Usage[m
+[32m+[m
+[32m+[m[32m```go[m
+[32m+[m[32mimport ([m
+[32m+[m[32m    "gopkg.hlmpn.dev/pkg/xprint"[m
+[32m+[m[32m)[m
+[32m+[m
+[32m+[m[32mfunc main() {[m
+[32m+[m[32m    // Use like fmt.Sprintf[m
+[32m+[m[32m    str := xprint.Printf("Hello, %s! You are %d years old.", "User", 25)[m
+[32m+[m[41m    [m
+[32m+[m[32m    // Works with all standard fmt verbs[m
+[32m+[m[32m    complexStr := xprint.Printf("%v %#v %T", myStruct, myMap, myInterface)[m
+[32m+[m[32m}[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m## Performance[m
+[32m+[m
+[32m+[m[32mBenchmarks show that `xprint.Printf` is approximately 40-47% faster than `fmt.Sprintf` across a variety of use cases:[m
+[32m+[m
+[32m+[m[32m| Function | Average Time | ns/byte |[m
+[32m+[m[32m|----------|--------------|---------|[m
+[32m+[m[32m| xprint.Printf | 7.8ms | 0.07 |[m
+[32m+[m[32m| fmt.Sprintf | 13.4ms | 0.12 |[m
+[32m+[m
+[32m+[m[32mThe performance advantage is most notable when:[m
+[32m+[m[32m- Formatting strings with the `%s` verb[m
+[32m+[m[32m- Working with a mix of string and numeric values[m
+[32m+[m[32m- Handling complex data structures[m
+[32m+[m
+[32m+[m[32m## Implementation Details[m
+[32m+[m
+[32m+[m[32mThe performance improvement comes from:[m
+[32m+[m[32m- Using `strings.Builder` for efficient string concatenation[m
+[32m+[m[32m- Specialized fast paths for common formatting patterns[m
+[32m+[m[32m- Optimized number-to-string conversions[m
+[32m+[m
+[32m+[m[32m## Project Structure[m
+[32m+[m
+[32m+[m[32m- `/` - Main package files (exported API)[m
+[32m+[m[32m- `/validation` - Test and benchmark suite (not part of the exported API)[m
+[32m+[m[32m  - `/validation/internal` - Internal utilities for testing and benchmarking[m
+[32m+[m
+[32m+[m[32m## Validation[m
+[32m+[m
+[32m+[m[32mThe validation suite in `/validation` provides comprehensive compatibility testing with `fmt.Sprintf`:[m
+[32m+[m
+[32m+[m[32m```bash[m
+[32m+[m[32mcd validation[m
+[32m+[m[32mgo build -o validation.bin .[m
+[32m+[m[32m./validation.bin simple  # Run compatibility tests[m
+[32m+[m[32m./validation.bin newbench  # Run benchmarks[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m## License[m
+[32m+[m
+[32m+[m[32mThis project is licensed under the MIT License - see the LICENSE file for details.[m[41m [m
+\ No newline at end of file[m
+[1mdiff --git a/_lint/.golangci.json b/_lint/.golangci.json[m
+[1mnew file mode 100644[m
+[1mindex 0000000..9b3ba4f[m
+[1m--- /dev/null[m
+[1m+++ b/_lint/.golangci.json[m
+[36m@@ -0,0 +1,63 @@[m
+[32m+[m[32m{[m
+[32m+[m[32m    "$schema": "https://golangci-lint.run/jsonschema/golangci.jsonschema.json",[m
+[32m+[m
+[32m+[m[32m    "linters": {[m
+[32m+[m[32m        "fast": true,[m
+[32m+[m[32m        "enable": [[m
+[32m+[m[32m            "gocritic",[m
+[32m+[m[32m            "gosec",[m
+[32m+[m[32m            "perfsprint",[m
+[32m+[m[32m            "misspell",[m
+[32m+[m[32m            "revive",[m
+[32m+[m[32m            "prealloc",[m
+[32m+[m[32m            "errname",[m
+[32m+[m[32m            "wastedassign",[m
+[32m+[m[32m            "unconvert",[m
+[32m+[m[32m            "predeclared",[m
+[32m+[m[32m            "nilnil",[m
+[32m+[m[32m            "nestif",[m
+[32m+[m[32m            "mnd",[m
+[32m+[m[32m            "mirror",[m
+[32m+[m[32m            "makezero",[m
+[32m+[m[32m            "intrange",[m
+[32m+[m[32m            "gochecknoinits",[m
+[32m+[m[32m            "forcetypeassert",[m
+[32m+[m[32m            "asciicheck",[m
+[32m+[m[32m            "bidichk",[m
+[32m+[m[32m            "dupl",[m
+[32m+[m[32m            "dupword",[m
+[32m+[m[32m            "exptostd"[m
+[32m+[m
+[32m+[m
+[32m+[m[32m        ][m
+[32m+[m[32m    },[m
+[32m+[m[32m    "run": {[m
+[32m+[m[32m        "go": "1.24.0"[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "linters-settings": {[m
+[32m+[m[32m        "gocritic": {[m
+[32m+[m[32m            "enabled-checks": [[m
+[32m+[m[32m                "sliceClear",[m
+[32m+[m[32m                "unnecessaryDefer"[m
+[32m+[m[32m            ][m
+[32m+[m[32m        },[m
+[32m+[m[32m        "perfsprint": {[m
+[32m+[m[32m            "integer-format": true,[m
+[32m+[m[32m            "int-conversion": true,[m
+[32m+[m[32m            "error-format": true,[m
+[32m+[m[32m            "err-error": true,[m
+[32m+[m[32m            "errorf": true,[m
+[32m+[m[32m            "string-format": true,[m
+[32m+[m[32m            "sprintf1": true,[m
+[32m+[m[32m            "strconcat": true,[m
+[32m+[m[32m            "bool-format": true,[m
+[32m+[m[32m            "hex-format": true[m
+[32m+[m[32m        }[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "issues": {[m
+[32m+[m[32m        "exclude": [[m
+[32m+[m[32m            "G114",[m
+[32m+[m[32m            "should omit type .* from declaration of var"[m
+[32m+[m[32m        ][m
+[32m+[m[32m    }[m
+[32m+[m[32m}[m
+\ No newline at end of file[m
+[1mdiff --git a/buffer.go b/buffer.go[m
+[1mnew file mode 100644[m
+[1mindex 0000000..8872c9c[m
+[1m--- /dev/null[m
+[1m+++ b/buffer.go[m
+[36m@@ -0,0 +1,31 @@[m
+[32m+[m[32mpackage xprint[m
+[32m+[m
+[32m+[m[32mimport "unicode/utf8"[m
+[32m+[m
+[32m+[m[32m// buffer is a simple []byte buffer for building strings.[m
+[32m+[m[32mtype buffer []byte[m
+[32m+[m
+[32m+[m[32mfunc (b *buffer) Len() int {[m
+[32m+[m	[32mreturn len([]byte(*b))[m
+[32m+[m[32m}[m
+[32m+[m[32mfunc (b *buffer) LenMB() int {[m
+[32m+[m	[32mreturn BtoMB(b.Len())[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunc (b *buffer) write(p []byte) {[m
+[32m+[m	[32m*b = append(*b, p...)[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunc (b *buffer) writeString(s string) {[m
+[32m+[m	[32m*b = append(*b, s...)[m
+[32m+[m[32m}[m
+[32m+[m[32mfunc (b *buffer) writeByte(c byte) {[m
+[32m+[m	[32m*b = append(*b, c)[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunc (b *buffer) writeRune(r rune) {[m
+[32m+[m	[32m*b = utf8.AppendRune(*b, r)[m
+[32m+[m[32m}[m
+[32m+[m[32mfunc BtoMB(b int) int {[m
+[32m+[m	[32mreturn b / 1024 / 1024[m
+[32m+[m[32m}[m
+[1mdiff --git a/constants.go b/constants.go[m
+[1mnew file mode 100644[m
+[1mindex 0000000..a86c0aa[m
+[1m--- /dev/null[m
+[1m+++ b/constants.go[m
+[36m@@ -0,0 +1,31 @@[m
+[32m+[m[32mpackage xprint[m
+[32m+[m
+[32m+[m[32mconst ([m
+[32m+[m	[32mcommaSpaceString  = ", "[m
+[32m+[m	[32mnilAngleString    = "<nil>"[m
+[32m+[m	[32mnilParenString    = "(nil)"[m
+[32m+[m	[32mnilString         = "nil"[m
+[32m+[m	[32mpercentBangString = "%!"[m
+[32m+[m	[32mmissingString     = "(MISSING)"[m
+[32m+[m	[32mbadIndexString    = "(BADINDEX)"[m
+[32m+[m	[32mnoVerbString      = "%!(NOVERB)"[m
+[32m+[m	[32mbadWidthString    = "%!(BADWIDTH)"[m
+[32m+[m	[32mbadPrecString     = "%!(BADPREC)"[m
+[32m+[m	[32mbadVerbString     = "%!(BADVERB)"[m
+[32m+[m	[32mmapString         = "map["[m
+[32m+[m	[32mpanicString       = "(PANIC="[m
+[32m+[m	[32mextraString       = "%!(EXTRA "[m
+[32m+[m
+[32m+[m	[32minvReflectString = "<invalid reflect.Value>"[m
+[32m+[m[32m)[m
+[32m+[m
+[32m+[m[32m// Digits for formatting[m
+[32m+[m[32mconst ([m
+[32m+[m	[32mldigits = "0123456789abcdef"[m
+[32m+[m	[32mudigits = "0123456789ABCDEF"[m
+[32m+[m[32m)[m
+[32m+[m
+[32m+[m[32mconst ([m
+[32m+[m	[32msigned   = true[m
+[32m+[m	[32munsigned = false[m
+[32m+[m[32m)[m
+[1mdiff --git a/doc.go b/doc.go[m
+[1mnew file mode 100644[m
+[1mindex 0000000..01ad0cd[m
+[1m--- /dev/null[m
+[1m+++ b/doc.go[m
+[36m@@ -0,0 +1,30 @@[m
+[32m+[m[32m/*[m
+[32m+[m[32mPackage xprint provides high-performance string formatting functions that are API-compatible with fmt.[m
+[32m+[m
+[32m+[m[32mThe package is designed to be a drop-in replacement for fmt.Sprintf with significant performance[m
+[32m+[m[32mimprovements (40-47% faster in benchmarks). It achieves this by using specialized string building[m
+[32m+[m[32mtechniques and optimized type-specific formatting paths.[m
+[32m+[m
+[32m+[m[32mExample usage:[m
+[32m+[m
+[32m+[m	[32mstr := xprint.Printf("Hello, %s! You are %d years old.", "User", 25)[m
+[32m+[m
+[32m+[m[32mThe package supports all standard formatting directives from the fmt package, including:[m
+[32m+[m[32m  - %v - default format[m
+[32m+[m[32m  - %+v - default format with struct field names[m
+[32m+[m[32m  - %#v - Go syntax format[m
+[32m+[m[32m  - %T - type[m
+[32m+[m[32m  - %t - boolean[m
+[32m+[m[32m  - %d - decimal integer[m
+[32m+[m[32m  - %b - binary integer[m
+[32m+[m[32m  - %c - character[m
+[32m+[m[32m  - %s - string[m
+[32m+[m[32m  - %p - pointer[m
+[32m+[m[32m  - And more[m
+[32m+[m
+[32m+[m[32mPerformance improvements are most notable when:[m
+[32m+[m[32m  - Formatting strings with the %s verb[m
+[32m+[m[32m  - Working with a mix of string and numeric values[m
+[32m+[m[32m  - Handling complex data structures[m
+[32m+[m[32m*/[m
+[32m+[m[32mpackage xprint[m
+[1mdiff --git a/doprint.go b/doprint.go[m
+[1mnew file mode 100644[m
+[1mindex 0000000..ff85180[m
+[1m--- /dev/null[m
+[1m+++ b/doprint.go[m
+[36m@@ -0,0 +1,165 @@[m
+[32m+[m[32mpackage xprint[m
+[32m+[m
+[32m+[m[32mimport "reflect"[m
+[32m+[m
+[32m+[m[32m// doPrintf is the core printf implementation. It formats into p.buf.[m
+[32m+[m[32mfunc (p *printer) printf(format string, args []any) {[m
+[32m+[m	[32mend := len(format)[m
+[32m+[m	[32margNum := 0[m
+[32m+[m	[32mlenOfArgs := len(args)[m
+[32m+[m	[32mi := 0[m
+[32m+[m	[32mfor i < end {[m
+[32m+[m		[32mlasti := i[m
+[32m+[m
+[32m+[m		[32mfor i < end && format[i] != '%' {[m
+[32m+[m			[32mi++[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32m// if i > lasti && format[i-1] != '%' {[m
+[32m+[m		[32m// 	p.buf = append(p.buf, format[lasti:i]...)[m
+[32m+[m		[32m// }[m
+[32m+[m		[32mswitch i > lasti && format[i-1] != '%' {[m
+[32m+[m		[32mcase true:[m
+[32m+[m			[32mp.buf = append(p.buf, format[lasti:i]...)[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32m// if i >= end {[m
+[32m+[m		[32m// 	break[m
+[32m+[m		[32m// }[m
+[32m+[m		[32mswitch end <= i {[m
+[32m+[m		[32mcase true:[m
+[32m+[m			[32mbreak[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32m// Process one verb[m
+[32m+[m		[32mi++[m
+[32m+[m
+[32m+[m		[32m// Handle %% case[m
+[32m+[m		[32mif i < end && format[i] == '%' {[m
+[32m+[m			[32mp.buf = append(p.buf, '%')[m
+[32m+[m			[32mi++[m
+[32m+[m			[32mcontinue[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32mp.fmt.clearflags()[m
+[32m+[m
+[32m+[m		[32m// Handle flags[m
+[32m+[m		[32mfor i < end {[m
+[32m+[m			[32mswitch format[i] {[m
+[32m+[m			[32mcase '#':[m
+[32m+[m				[32mp.fmt.sharp = true[m
+[32m+[m			[32mcase '0':[m
+[32m+[m				[32mp.fmt.zero = true[m
+[32m+[m			[32mcase '+':[m
+[32m+[m				[32mp.fmt.plus = true[m
+[32m+[m			[32mcase '-':[m
+[32m+[m				[32mp.fmt.minus = true[m
+[32m+[m			[32mcase ' ':[m
+[32m+[m				[32mp.fmt.space = true[m
+[32m+[m			[32mdefault:[m
+[32m+[m				[32mgoto flags_done[m
+[32m+[m			[32m}[m
+[32m+[m			[32mi++[m
+[32m+[m		[32m}[m
+[32m+[m	[32mflags_done:[m
+[32m+[m		[32mp.arg = args[argNum][m
+[32m+[m		[32mif i < end && format[i] == '*' {[m
+[32m+[m			[32mi++[m
+[32m+[m			[32mif argNum >= lenOfArgs {[m
+[32m+[m				[32mp.buf.writeString(missingString)[m
+[32m+[m				[32mbreak[m
+[32m+[m			[32m}[m
+[32m+[m			[32mwidth, ok := p.arg.(int)[m
+[32m+[m			[32mif !ok {[m
+[32m+[m				[32mp.buf.writeString(badWidthString)[m
+[32m+[m			[32m} else {[m
+[32m+[m				[32mp.fmt.wid = width[m
+[32m+[m				[32mp.fmt.widPresent = true[m
+[32m+[m				[32mif width < 0 {[m
+[32m+[m					[32mp.fmt.minus = true[m
+[32m+[m					[32mp.fmt.wid = -width[m
+[32m+[m				[32m}[m
+[32m+[m			[32m}[m
+[32m+[m			[32margNum++[m
+[32m+[m		[32m} else if i < end {[m
+[32m+[m			[32mp.fmt.wid, p.fmt.widPresent, i = parsenum(format, i, end)[m
+[32m+[m		[32m}[m
+[32m+[m		[32m// Handle precision[m
+[32m+[m		[32mif i < end && format[i] == '.' {[m
+[32m+[m			[32mi++[m
+[32m+[m			[32mif i < end && format[i] == '*' {[m
+[32m+[m				[32mi++[m
+[32m+[m				[32mif argNum >= lenOfArgs {[m
+[32m+[m					[32mp.buf.writeString(missingString)[m
+[32m+[m					[32mbreak[m
+[32m+[m				[32m}[m
+[32m+[m				[32mprec, ok := p.arg.(int)[m
+[32m+[m				[32mif !ok {[m
+[32m+[m					[32mp.buf.writeString(badPrecString)[m
+[32m+[m				[32m} else {[m
+[32m+[m					[32mp.fmt.prec = prec[m
+[32m+[m					[32mp.fmt.precPresent = true[m
+[32m+[m					[32mif prec < 0 {[m
+[32m+[m						[32mp.fmt.precPresent = false[m
+[32m+[m					[32m}[m
+[32m+[m				[32m}[m
+[32m+[m				[32margNum++[m
+[32m+[m			[32m} else {[m
+[32m+[m				[32mp.fmt.prec, p.fmt.precPresent, i = parsenum(format, i, end)[m
+[32m+[m			[32m}[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32mif i >= end {[m
+[32m+[m			[32mp.buf.writeString(noVerbString)[m
+[32m+[m			[32mbreak[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32mverb := rune(format[i])[m
+[32m+[m		[32mi++[m
+[32m+[m
+[32m+[m		[32m// Handle argument[m
+[32m+[m		[32mif argNum >= lenOfArgs {[m
+[32m+[m			[32mp.buf.writeString(missingString)[m
+[32m+[m			[32mbreak[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32margNum++[m
+[32m+[m
+[32m+[m		[32mif p.arg == nil {[m
+[32m+[m			[32mp.buf.writeString(nilAngleString)[m
+[32m+[m			[32mbreak[m
+[32m+[m		[32m}[m
+[32m+[m		[32mif p.ArgIsString() && verb == 's' && verb != 'T' {[m
+[32m+[m			[32mp.buf = append(p.buf, p.arg.(string)...)[m
+[32m+[m			[32mcontinue[m
+[32m+[m		[32m} else if p.ArgIsBytes() && verb == 's' && verb != 'T' {[m
+[32m+[m			[32mp.buf = append(p.buf, p.arg.([]byte)...)[m
+[32m+[m			[32mcontinue[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32mswitch verb {[m
+[32m+[m		[32mcase 'v':[m
+[32m+[m			[32mp.fmt.plusV = p.fmt.plus[m
+[32m+[m			[32mp.fmt.sharpV = p.fmt.sharp[m
+[32m+[m			[32mp.printArg(p.arg, verb)[m
+[32m+[m		[32mcase 'd', 'o', 'O', 'x', 'X', 'b', 'B':[m
+[32m+[m			[32mp.printArg(p.arg, verb)[m
+[32m+[m		[32mcase 'f', 'F', 'g', 'G', 'e', 'E':[m
+[32m+[m			[32mp.printArg(p.arg, verb)[m
+[32m+[m		[32mcase 'q', 's': // 's'[m
+[32m+[m			[32mp.printArg(p.arg, verb)[m
+[32m+[m		[32mcase 't':[m
+[32m+[m			[32mp.printBool(p.arg)[m
+[32m+[m
+[32m+[m		[32mcase 'T':[m
+[32m+[m			[32mp.printReflectType(p.arg)[m
+[32m+[m		[32mcase 'p':[m
+[32m+[m			[32mp.fmtPointer(reflect.ValueOf(p.arg), verb)[m
+[32m+[m		[32mdefault:[m
+[32m+[m			[32mp.buf.writeString(percentBangString)[m
+[32m+[m			[32mp.buf.writeRune(verb)[m
+[32m+[m			[32mp.buf.writeString(noVerbString)[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m	[32m}[m
+[32m+[m[32m}[m
+[1mdiff --git a/fmt.go b/fmt.go[m
+[1mnew file mode 100644[m
+[1mindex 0000000..117143f[m
+[1m--- /dev/null[m
+[1m+++ b/fmt.go[m
+[36m@@ -0,0 +1,54 @@[m
+[32m+[m[32mpackage xprint[m
+[32m+[m
+[32m+[m[32m// fmtFlags contains the core formatting flags[m
+[32m+[m[32mtype fmtFlags struct {[m
+[32m+[m	[32mwidPresent, precPresent         bool[m
+[32m+[m	[32mminus, plus, sharp, space, zero bool[m
+[32m+[m	[32mplusV, sharpV                   bool[m
+[32m+[m	[32mwid, prec                       int[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m// fmt holds the formatting state[m
+[32m+[m[32mtype fmt struct {[m
+[32m+[m	[32mbuf *buffer[m
+[32m+[m	[32mfmtFlags[m
+[32m+[m	[32m// intbuf is large enough to store %b of an int64 with a sign and[m
+[32m+[m	[32m// avoids padding at the end of the struct on 32 bit architectures.[m
+[32m+[m	[32mintbuf [68]byte[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunc (f *fmt) init(b *buffer) {[m
+[32m+[m	[32mf.buf = b[m
+[32m+[m	[32mf.clearflags()[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunc (f *fmt) clearflags() {[m
+[32m+[m	[32mf.widPresent = false[m
+[32m+[m	[32mf.precPresent = false[m
+[32m+[m	[32mf.minus = false[m
+[32m+[m	[32mf.plus = false[m
+[32m+[m	[32mf.sharp = false[m
+[32m+[m	[32mf.space = false[m
+[32m+[m	[32mf.zero = false[m
+[32m+[m	[32mf.plusV = false[m
+[32m+[m	[32mf.sharpV = false[m
+[32m+[m	[32mf.wid = 0[m
+[32m+[m	[32mf.prec = 0[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m// visited tracks pointers already seen during recursive value formatting[m
+[32m+[m[32mtype visited struct {[m
+[32m+[m	[32mptrs map[uintptr]bool[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunc (v *visited) init() {[m
+[32m+[m	[32mv.ptrs = make(map[uintptr]bool)[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunc (v *visited) visit(p uintptr) bool {[m
+[32m+[m	[32mif v.ptrs[p] {[m
+[32m+[m		[32mreturn true[m
+[32m+[m	[32m}[m
+[32m+[m	[32mv.ptrs[p] = true[m
+[32m+[m	[32mreturn false[m
+[32m+[m[32m}[m
+[1mdiff --git a/fmt_methods.go b/fmt_methods.go[m
+[1mnew file mode 100644[m
+[1mindex 0000000..ca59c26[m
+[1m--- /dev/null[m
+[1m+++ b/fmt_methods.go[m
+[36m@@ -0,0 +1,192 @@[m
+[32m+[m[32mpackage xprint[m
+[32m+[m
+[32m+[m[32mimport ([m
+[32m+[m	[32m"strconv"[m
+[32m+[m	[32m"strings"[m
+[32m+[m	[32m"unicode/utf8"[m
+[32m+[m[32m)[m
+[32m+[m
+[32m+[m[32m// Core formatting methods[m
+[32m+[m[32mfunc (f *fmt) fmtBool(v bool) {[m
+[32m+[m	[32mif v {[m
+[32m+[m		[32mf.buf.writeString("true")[m
+[32m+[m	[32m} else {[m
+[32m+[m		[32mf.buf.writeString("false")[m
+[32m+[m	[32m}[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunc (f *fmt) fmtString(s string) {[m
+[32m+[m	[32mf.buf.writeString(s)[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunc (f *fmt) fmtBytes(v []byte) {[m
+[32m+[m	[32mf.buf.write(v)[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunc (f *fmt) fmtFloat(v float64, size int, verb rune, prec int) {[m
+[32m+[m	[32m// Handle sign[m
+[32m+[m	[32msign := ""[m
+[32m+[m	[32mif v < 0 {[m
+[32m+[m		[32msign = "-"[m
+[32m+[m		[32mv = -v[m
+[32m+[m	[32m} else if f.plus {[m
+[32m+[m		[32msign = "+"[m
+[32m+[m	[32m} else if f.space {[m
+[32m+[m		[32msign = " "[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32m// Set default precision if not specified[m
+[32m+[m	[32mif prec < 0 {[m
+[32m+[m		[32mswitch verb {[m
+[32m+[m		[32mcase 'e', 'E', 'f', 'F':[m
+[32m+[m			[32mprec = 6[m
+[32m+[m		[32mcase 'g', 'G':[m
+[32m+[m			[32mprec = -1 // Use shortest representation[m
+[32m+[m		[32mdefault:[m
+[32m+[m			[32mprec = 6[m
+[32m+[m		[32m}[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32m// Format based on verb[m
+[32m+[m	[32mvar format byte[m
+[32m+[m	[32mswitch verb {[m
+[32m+[m	[32mcase 'f', 'F':[m
+[32m+[m		[32mformat = 'f'[m
+[32m+[m	[32mcase 'e', 'E':[m
+[32m+[m		[32mformat = byte(verb)[m
+[32m+[m	[32mcase 'g', 'G':[m
+[32m+[m		[32mformat = byte(verb)[m
+[32m+[m	[32mdefault:[m
+[32m+[m		[32mformat = 'g'[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32m// Convert to string[m
+[32m+[m	[32mnum := strconv.FormatFloat(v, format, prec, size)[m
+[32m+[m
+[32m+[m	[32m// Handle special cases for 'g'/'G' format[m
+[32m+[m	[32mif (verb == 'g' || verb == 'G') && f.sharp && strings.IndexByte(num, '.') < 0 {[m
+[32m+[m		[32mnum += "."[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32m// Combine all parts[m
+[32m+[m	[32ms := sign + num[m
+[32m+[m
+[32m+[m	[32m// Handle padding[m
+[32m+[m	[32mf.pad(s)[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunc (f *fmt) fmtInt(v int64, base int, verb rune) {[m
+[32m+[m	[32m// Build the string[m
+[32m+[m	[32mvar s string[m
+[32m+[m
+[32m+[m	[32m// Determine sign using switch[m
+[32m+[m	[32msign := ""[m
+[32m+[m	[32mswitch {[m
+[32m+[m	[32mcase v < 0:[m
+[32m+[m		[32msign = "-"[m
+[32m+[m		[32mv = -v[m
+[32m+[m	[32mcase f.plus:[m
+[32m+[m		[32msign = "+"[m
+[32m+[m	[32mcase f.space:[m
+[32m+[m		[32msign = " "[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32m// Convert number to string[m
+[32m+[m	[32mnum := strconv.FormatInt(v, base)[m
+[32m+[m	[32mif base == 16 && verb == 'X' {[m
+[32m+[m		[32mnum = strings.ToUpper(num)[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32m// Add prefix if requested[m
+[32m+[m	[32mprefix := ""[m
+[32m+[m	[32mif f.sharp {[m
+[32m+[m		[32mswitch base {[m
+[32m+[m		[32mcase 2:[m
+[32m+[m			[32mprefix = "0b"[m
+[32m+[m		[32mcase 8:[m
+[32m+[m			[32mprefix = "0o"[m
+[32m+[m		[32mcase 16:[m
+[32m+[m			[32mprefix = "0x"[m
+[32m+[m		[32m}[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32m// Combine all parts[m
+[32m+[m	[32ms = sign + prefix + num[m
+[32m+[m
+[32m+[m	[32m// Handle padding[m
+[32m+[m	[32mf.pad(s)[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunc (f *fmt) fmtUint(v uint64, base int, verb rune) {[m
+[32m+[m	[32m// Build the string[m
+[32m+[m	[32mvar s string[m
+[32m+[m	[32msign := ""[m
+[32m+[m	[32mif f.plus {[m
+[32m+[m		[32msign = "+"[m
+[32m+[m	[32m} else if f.space {[m
+[32m+[m		[32msign = " "[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32m// Convert number to string[m
+[32m+[m	[32mnum := strconv.FormatUint(v, base)[m
+[32m+[m	[32mif base == 16 && verb == 'X' {[m
+[32m+[m		[32mnum = strings.ToUpper(num)[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32m// Add prefix if requested[m
+[32m+[m	[32mprefix := ""[m
+[32m+[m	[32mif f.sharp {[m
+[32m+[m		[32mswitch base {[m
+[32m+[m		[32mcase 2:[m
+[32m+[m			[32mprefix = "0b"[m
+[32m+[m		[32mcase 8:[m
+[32m+[m			[32mprefix = "0o"[m
+[32m+[m		[32mcase 16:[m
+[32m+[m			[32mprefix = "0x"[m
+[32m+[m		[32m}[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32m// Combine all parts[m
+[32m+[m	[32ms = sign + prefix + num[m
+[32m+[m
+[32m+[m	[32m// Handle padding[m
+[32m+[m	[32mf.pad(s)[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunc (f *fmt) pad(s string) {[m
+[32m+[m	[32mif !f.widPresent || f.wid == 0 {[m
+[32m+[m		[32mf.buf.writeString(s)[m
+[32m+[m		[32mreturn[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32mwidth := f.wid - utf8.RuneCountInString(s)[m
+[32m+[m	[32mif width <= 0 {[m
+[32m+[m		[32mf.buf.writeString(s)[m
+[32m+[m		[32mreturn[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32m// Left padding[m
+[32m+[m	[32mif !f.minus {[m
+[32m+[m		[32mif f.zero && !strings.ContainsAny(s, ".-+") {[m
+[32m+[m			[32m//nolint:all[m
+[32m+[m			[32mfor i := 0; i < width; i++ {[m
+[32m+[m				[32mf.buf.writeByte('0')[m
+[32m+[m			[32m}[m
+[32m+[m		[32m} else {[m
+[32m+[m			[32m//nolint:all[m
+[32m+[m			[32mfor i := 0; i < width; i++ {[m
+[32m+[m				[32mf.buf.writeByte(' ')[m
+[32m+[m			[32m}[m
+[32m+[m		[32m}[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32mf.buf.writeString(s)[m
+[32m+[m
+[32m+[m	[32m// Right padding[m
+[32m+[m	[32mif f.minus {[m
+[32m+[m		[32m//nolint:all[m
+[32m+[m		[32mfor i := 0; i < width; i++ {[m
+[32m+[m			[32mf.buf.writeByte(' ')[m
+[32m+[m		[32m}[m
+[32m+[m	[32m}[m
+[32m+[m[32m}[m
+[1mdiff --git a/misc_parsers.go b/misc_parsers.go[m
+[1mnew file mode 100644[m
+[1mindex 0000000..d9dc0e2[m
+[1m--- /dev/null[m
+[1m+++ b/misc_parsers.go[m
+[36m@@ -0,0 +1,37 @@[m
+[32m+[m[32mpackage xprint[m
+[32m+[m
+[32m+[m[32m// parseArgNumber returns the value of the bracketed number, minus 1[m
+[32m+[m[32m// (explicit argument numbers are one-indexed but we want zero-indexed).[m
+[32m+[m[32m// The opening bracket is known to be present at format[0].[m
+[32m+[m[32m// The returned values are the index, the number of bytes to consume[m
+[32m+[m[32m// up to the closing paren, if present, and whether the number parsed[m
+[32m+[m[32m// ok. The bytes to consume will be 1 if no closing paren is present.[m
+[32m+[m[32mfunc parseArgNumber(format string) (index int, wid int, ok bool) {[m
+[32m+[m	[32m// There must be at least 3 bytes: [n].[m
+[32m+[m	[32mif len(format) < 3 {[m
+[32m+[m		[32mreturn 0, 1, false[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32m// Find closing bracket.[m
+[32m+[m	[32mfor i := 1; i < len(format); i++ {[m
+[32m+[m		[32mif format[i] == ']' {[m
+[32m+[m			[32mwidth, ok, newi := parsenum(format, 1, i)[m
+[32m+[m			[32mif !ok || newi != i {[m
+[32m+[m				[32mreturn 0, i + 1, false[m
+[32m+[m			[32m}[m
+[32m+[m			[32mreturn width - 1, i + 1, true // arg numbers are one-indexed and skip paren.[m
+[32m+[m		[32m}[m
+[32m+[m	[32m}[m
+[32m+[m	[32mreturn 0, 1, false[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunc parsenum(s string, start, end int) (num int, isnum bool, newi int) {[m
+[32m+[m	[32mif start >= end {[m
+[32m+[m		[32mreturn 0, false, end[m
+[32m+[m	[32m}[m
+[32m+[m	[32mfor newi = start; newi < end && '0' <= s[newi] && s[newi] <= '9'; newi++ {[m
+[32m+[m		[32mnum = num*10 + int(s[newi]-'0')[m
+[32m+[m		[32misnum = true[m
+[32m+[m	[32m}[m
+[32m+[m	[32mreturn[m
+[32m+[m[32m}[m
+[1mdiff --git a/print_int.go b/print_int.go[m
+[1mnew file mode 100644[m
+[1mindex 0000000..131073d[m
+[1m--- /dev/null[m
+[1m+++ b/print_int.go[m
+[36m@@ -0,0 +1,111 @@[m
+[32m+[m[32mpackage xprint[m
+[32m+[m
+[32m+[m[32mimport ([m
+[32m+[m	[32m"math"[m
+[32m+[m	[32m"reflect"[m
+[32m+[m	[32m"strconv"[m
+[32m+[m[32m)[m
+[32m+[m
+[32m+[m[32mfunc (p *printer) printInt(v any, base int, verb rune) {[m
+[32m+[m	[32mvar str string[m
+[32m+[m	[32mswitch v := v.(type) {[m
+[32m+[m	[32mcase int:[m
+[32m+[m		[32mstr = predefinedOrPrint(v, base, verb)[m
+[32m+[m	[32mcase int8:[m
+[32m+[m		[32mstr = predefinedOrPrint(v, base, verb)[m
+[32m+[m	[32mcase int16:[m
+[32m+[m		[32mstr = predefinedOrPrint(v, base, verb)[m
+[32m+[m	[32mcase int32:[m
+[32m+[m		[32mstr = predefinedOrPrint(v, base, verb)[m
+[32m+[m	[32mcase int64:[m
+[32m+[m		[32mstr = predefinedOrPrint(v, base, verb)[m
+[32m+[m
+[32m+[m	[32mcase uint:[m
+[32m+[m		[32mstr = strconv.FormatUint(uint64(v), base)[m
+[32m+[m	[32mcase uint8:[m
+[32m+[m		[32mstr = strconv.FormatUint(uint64(v), base)[m
+[32m+[m	[32mcase uint16:[m
+[32m+[m		[32mstr = strconv.FormatUint(uint64(v), base)[m
+[32m+[m	[32mcase uint32:[m
+[32m+[m		[32mstr = strconv.FormatUint(uint64(v), base)[m
+[32m+[m	[32mcase uint64:[m
+[32m+[m		[32mstr = strconv.FormatUint(v, base)[m
+[32m+[m	[32mdefault:[m
+[32m+[m		[32mp.buf.writeString(percentBangString)[m
+[32m+[m		[32mp.buf.writeByte(byte(verb))[m
+[32m+[m		[32mp.buf.writeString(badVerbString)[m
+[32m+[m		[32mreturn[m
+[32m+[m	[32m}[m
+[32m+[m	[32mp.buf.writeString(str)[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mtype num interface {[m
+[32m+[m	[32m~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunc predefinedOrPrint[T num](v T, base int, verb rune) string {[m
+[32m+[m	[32mvar str string[m
+[32m+[m	[32mswitch v {[m
+[32m+[m	[32mcase 0:[m
+[32m+[m		[32mstr = "0"[m
+[32m+[m	[32mcase 1:[m
+[32m+[m		[32mstr = "1"[m
+[32m+[m	[32mcase 2:[m
+[32m+[m		[32mstr = "2"[m
+[32m+[m	[32mcase 3:[m
+[32m+[m		[32mstr = "3"[m
+[32m+[m	[32mcase 4:[m
+[32m+[m		[32mstr = "4"[m
+[32m+[m	[32mcase 5:[m
+[32m+[m		[32mstr = "5"[m
+[32m+[m	[32mcase 6:[m
+[32m+[m		[32mstr = "6"[m
+[32m+[m	[32mcase 7:[m
+[32m+[m		[32mstr = "7"[m
+[32m+[m	[32mcase 8:[m
+[32m+[m		[32mstr = "8"[m
+[32m+[m	[32mcase 9:[m
+[32m+[m		[32mstr = "9"[m
+[32m+[m	[32mdefault:[m
+[32m+[m		[32mstr = strconv.FormatInt(int64(v), base)[m
+[32m+[m	[32m}[m
+[32m+[m	[32mreturn str[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m// intFromArg gets the argNumth element of a. On return, isInt reports whether the argument has integer type.[m
+[32m+[m[32mfunc intFromArg(a []any, argNum int) (num int, isInt bool, newArgNum int) {[m
+[32m+[m	[32mnewArgNum = argNum[m
+[32m+[m	[32mif argNum < len(a) {[m
+[32m+[m		[32mnum, isInt = a[argNum].(int) // Almost always OK.[m
+[32m+[m		[32mif !isInt {[m
+[32m+[m			[32m// Work harder.[m
+[32m+[m			[32mswitch v := reflect.ValueOf(a[argNum]); v.Kind() {[m
+[32m+[m			[32mcase reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:[m
+[32m+[m				[32mn := v.Int()[m
+[32m+[m				[32mif int64(int(n)) == n {[m
+[32m+[m					[32mnum = int(n)[m
+[32m+[m					[32misInt = true[m
+[32m+[m				[32m}[m
+[32m+[m			[32mcase reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:[m
+[32m+[m				[32mn := v.Uint()[m
+[32m+[m				[32m// if int64(n) >= 0 && uint64(int(n)) == n {[m
+[32m+[m				[32m// 	num = int(n)[m
+[32m+[m				[32m// 	isInt = true[m
+[32m+[m				[32m// }[m
+[32m+[m				[32mif n <= math.MaxInt {[m
+[32m+[m					[32mnum = int(n)[m
+[32m+[m					[32misInt = true[m
+[32m+[m				[32m}[m
+[32m+[m
+[32m+[m			[32mdefault:[m
+[32m+[m				[32m// Already 0, false.[m
+[32m+[m			[32m}[m
+[32m+[m		[32m}[m
+[32m+[m		[32mnewArgNum = argNum + 1[m
+[32m+[m		[32mif tooLarge(num) {[m
+[32m+[m			[32mnum = 0[m
+[32m+[m			[32misInt = false[m
+[32m+[m		[32m}[m
+[32m+[m	[32m}[m
+[32m+[m	[32mreturn[m
+[32m+[m[32m}[m
+[1mdiff --git a/print_reflect_value.go b/print_reflect_value.go[m
+[1mnew file mode 100644[m
+[1mindex 0000000..dc12ce3[m
+[1m--- /dev/null[m
+[1m+++ b/print_reflect_value.go[m
+[36m@@ -0,0 +1,144 @@[m
+[32m+[m[32mpackage xprint[m
+[32m+[m
+[32m+[m[32mimport "reflect"[m
+[32m+[m
+[32m+[m[32m// printValue is similar to printArg but starts with a reflect value, not an interface{} value.[m
+[32m+[m[32mfunc (p *printer) printValue(v reflect.Value, verb rune, prec int) {[m
+[32m+[m	[32m// Handle nil[m
+[32m+[m	[32mif !v.IsValid() {[m
+[32m+[m		[32mp.buf.writeString(nilAngleString)[m
+[32m+[m		[32mreturn[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32m// Check for recursive pointer/interface values[m
+[32m+[m	[32mif !p.recursing && (v.Kind() == reflect.Pointer || v.Kind() == reflect.Interface) {[m
+[32m+[m		[32mptr := v.Pointer()[m
+[32m+[m		[32mif ptr != 0 && p.visitedPtrs.visit(ptr) {[m
+[32m+[m			[32m// Already seen this pointer, print type and address[m
+[32m+[m			[32mp.buf.writeByte('&')[m
+[32m+[m			[32mp.buf.writeString(v.Type().String())[m
+[32m+[m			[32mp.buf.writeString("(CYCLIC REFERENCE)")[m
+[32m+[m			[32mreturn[m
+[32m+[m		[32m}[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32m// Handle special cases for verb 'v' with sharp flag[m
+[32m+[m	[32mif verb == 'v' && p.fmt.sharpV {[m
+[32m+[m		[32m// Print type for nil pointer/interface/slice[m
+[32m+[m		[32mif (v.Kind() == reflect.Pointer || v.Kind() == reflect.Interface || v.Kind() == reflect.Slice) && v.IsNil() {[m
+[32m+[m			[32mp.buf.writeString(v.Type().String())[m
+[32m+[m			[32mp.buf.writeString(nilParenString)[m
+[32m+[m			[32mreturn[m
+[32m+[m		[32m}[m
+[32m+[m		[32m// Print type for other values[m
+[32m+[m		[32mp.buf.writeString(v.Type().String())[m
+[32m+[m		[32mif v.Kind() == reflect.Struct {[m
+[32m+[m			[32mp.buf.writeByte('{')[m
+[32m+[m		[32m} else {[m
+[32m+[m			[32mp.buf.writeByte('(')[m
+[32m+[m		[32m}[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32m// Set recursing flag for nested calls[m
+[32m+[m	[32mwasRecursing := p.recursing[m
+[32m+[m	[32mp.recursing = true[m
+[32m+[m	[32mdefer func() { p.recursing = wasRecursing }()[m
+[32m+[m
+[32m+[m	[32m// Handle common types[m
+[32m+[m	[32mswitch v.Kind() {[m
+[32m+[m	[32mcase reflect.Bool:[m
+[32m+[m		[32mp.fmt.fmtBool(v.Bool())[m
+[32m+[m	[32mcase reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:[m
+[32m+[m		[32mp.printInt(v.Int(), 10, verb)[m
+[32m+[m	[32mcase reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:[m
+[32m+[m		[32mp.printInt(v.Uint(), 10, verb)[m
+[32m+[m	[32mcase reflect.Float32, reflect.Float64:[m
+[32m+[m		[32mp.printFloat(v, verb)[m
+[32m+[m	[32mcase reflect.String:[m
+[32m+[m		[32mp.fmt.fmtString(v.String())[m
+[32m+[m	[32mcase reflect.Slice:[m
+[32m+[m		[32mif v.IsNil() {[m
+[32m+[m			[32mp.buf.writeString(nilAngleString)[m
+[32m+[m			[32mreturn[m
+[32m+[m		[32m}[m
+[32m+[m		[32mif v.Type().Elem().Kind() == reflect.Uint8 {[m
+[32m+[m			[32mp.fmt.fmtBytes(v.Bytes())[m
+[32m+[m		[32m} else {[m
+[32m+[m			[32mp.buf.writeByte('[')[m
+[32m+[m			[32mfor i := 0; i < v.Len(); i++ {[m
+[32m+[m				[32mif i > 0 {[m
+[32m+[m					[32mp.buf.writeByte(' ')[m
+[32m+[m				[32m}[m
+[32m+[m				[32mp.printValue(v.Index(i), verb, prec)[m
+[32m+[m			[32m}[m
+[32m+[m			[32mp.buf.writeByte(']')[m
+[32m+[m		[32m}[m
+[32m+[m	[32mcase reflect.Array:[m
+[32m+[m		[32mp.buf.writeByte('[')[m
+[32m+[m		[32mfor i := 0; i < v.Len(); i++ {[m
+[32m+[m			[32mif i > 0 {[m
+[32m+[m				[32mp.buf.writeByte(' ')[m
+[32m+[m			[32m}[m
+[32m+[m			[32mp.printValue(v.Index(i), verb, prec)[m
+[32m+[m		[32m}[m
+[32m+[m		[32mp.buf.writeByte(']')[m
+[32m+[m	[32mcase reflect.Map:[m
+[32m+[m		[32mif v.IsNil() {[m
+[32m+[m			[32mp.buf.writeString(nilAngleString)[m
+[32m+[m			[32mreturn[m
+[32m+[m		[32m}[m
+[32m+[m		[32mp.buf.writeString("map[")[m
+[32m+[m		[32mkeys := v.MapKeys()[m
+[32m+[m		[32mfor i, key := range keys {[m
+[32m+[m			[32mif i > 0 {[m
+[32m+[m				[32mp.buf.writeByte(' ')[m
+[32m+[m			[32m}[m
+[32m+[m			[32mp.printValue(key, verb, prec)[m
+[32m+[m			[32mp.buf.writeByte(':')[m
+[32m+[m			[32mp.printValue(v.MapIndex(key), verb, prec)[m
+[32m+[m		[32m}[m
+[32m+[m		[32mp.buf.writeByte(']')[m
+[32m+[m	[32mcase reflect.Struct:[m
+[32m+[m		[32mp.buf.writeByte('{')[m
+[32m+[m		[32mfor i := 0; i < v.NumField(); i++ {[m
+[32m+[m			[32mif i > 0 {[m
+[32m+[m				[32mp.buf.writeByte(' ')[m
+[32m+[m			[32m}[m
+[32m+[m			[32mif p.fmt.plusV {[m
+[32m+[m				[32mp.buf.writeString(v.Type().Field(i).Name)[m
+[32m+[m				[32mp.buf.writeByte(':')[m
+[32m+[m			[32m}[m
+[32m+[m			[32mp.printValue(v.Field(i), verb, prec)[m
+[32m+[m		[32m}[m
+[32m+[m		[32mp.buf.writeByte('}')[m
+[32m+[m	[32mcase reflect.Pointer:[m
+[32m+[m		[32mif v.IsNil() {[m
+[32m+[m			[32mp.buf.writeString(nilAngleString)[m
+[32m+[m			[32mreturn[m
+[32m+[m		[32m}[m
+[32m+[m		[32mp.buf.writeByte('&')[m
+[32m+[m		[32mp.printValue(v.Elem(), verb, prec)[m
+[32m+[m	[32mcase reflect.Interface:[m
+[32m+[m		[32mif v.IsNil() {[m
+[32m+[m			[32mp.buf.writeString(nilAngleString)[m
+[32m+[m			[32mreturn[m
+[32m+[m		[32m}[m
+[32m+[m		[32mp.printValue(v.Elem(), verb, prec)[m
+[32m+[m	[32mdefault:[m
+[32m+[m		[32m// For other types, just use String()[m
+[32m+[m		[32mif v.CanInterface() {[m
+[32m+[m			[32mp.printArg(v.Interface(), verb)[m
+[32m+[m		[32m} else {[m
+[32m+[m			[32mp.buf.writeString(v.String())[m
+[32m+[m		[32m}[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32m// Close type wrapper for verb 'v' with sharp flag[m
+[32m+[m	[32mif verb == 'v' && p.fmt.sharpV {[m
+[32m+[m		[32mif v.Kind() == reflect.Struct {[m
+[32m+[m			[32mp.buf.writeByte('}')[m
+[32m+[m		[32m} else {[m
+[32m+[m			[32mp.buf.writeByte(')')[m
+[32m+[m		[32m}[m
+[32m+[m	[32m}[m
+[32m+[m[32m}[m
+[1mdiff --git a/print_types.go b/print_types.go[m
+[1mnew file mode 100644[m
+[1mindex 0000000..0d6c6d0[m
+[1m--- /dev/null[m
+[1m+++ b/print_types.go[m
+[36m@@ -0,0 +1,91 @@[m
+[32m+[m[32mpackage xprint[m
+[32m+[m
+[32m+[m[32mimport ([m
+[32m+[m	[32m"reflect"[m
+[32m+[m	[32m"unsafe"[m
+[32m+[m
+[32m+[m	[32m"gopkg.hlmpn.dev/pkg/go-logger"[m
+[32m+[m[32m)[m
+[32m+[m
+[32m+[m[32mfunc (p *printer) fmtPointer(value any, verb rune) {[m
+[32m+[m	[32mvar u uintptr[m
+[32m+[m	[32mswitch v := value.(type) {[m
+[32m+[m	[32mcase unsafe.Pointer:[m
+[32m+[m		[32mlogger.Warn("Trigger: unsafe.Pointer")[m
+[32m+[m		[32mu = uintptr(v)[m
+[32m+[m	[32mcase uintptr:[m
+[32m+[m		[32mlogger.Warn("Trigger: uintptr")[m
+[32m+[m		[32mu = v[m
+[32m+[m	[32mcase reflect.Value:[m
+[32m+[m		[32mlogger.Warn("Trigger: reflect.Value")[m
+[32m+[m		[32mu = v.Pointer()[m
+[32m+[m	[32mdefault:[m
+[32m+[m		[32mlogger.Warnf("Trigger: default with verb: %s", string(verb))[m
+[32m+[m		[32mswitch verb {[m
+[32m+[m		[32mcase 's', 'p', 'v':[m
+[32m+[m			[32m// Do nothing[m
+[32m+[m		[32mdefault:[m
+[32m+[m			[32mp.buf.writeString(nilParenString)[m
+[32m+[m			[32mreturn[m
+[32m+[m		[32m}[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32mp.buf.writeByte('0')[m
+[32m+[m	[32mp.buf.writeByte('x')[m
+[32m+[m
+[32m+[m	[32m// Convert uintptr to hex[m
+[32m+[m	[32mconst digits = "0123456789abcdef"[m
+[32m+[m	[32mbuf := make([]byte, 16)[m
+[32m+[m	[32mi := len(buf)[m
+[32m+[m	[32mfor u >= 16 {[m
+[32m+[m		[32mi--[m
+[32m+[m		[32mbuf[i] = digits[u&0xF][m
+[32m+[m		[32mu >>= 4[m
+[32m+[m	[32m}[m
+[32m+[m	[32mi--[m
+[32m+[m	[32mbuf[i] = digits[u][m
+[32m+[m	[32mp.buf.write(buf[i:])[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunc (p *printer) printBool(arg any) {[m
+[32m+[m	[32mif b, ok := arg.(bool); ok {[m
+[32m+[m		[32mif b {[m
+[32m+[m			[32mp.buf.writeString("true")[m
+[32m+[m		[32m} else {[m
+[32m+[m			[32mp.buf.writeString("false")[m
+[32m+[m		[32m}[m
+[32m+[m		[32mreturn[m
+[32m+[m	[32m}[m
+[32m+[m	[32mp.buf.writeString(percentBangString)[m
+[32m+[m	[32mp.buf.writeByte('t')[m
+[32m+[m	[32mp.buf.writeString(badVerbString)[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunc (p *printer) printReflectType(arg any) {[m
+[32m+[m	[32mp.buf.writeString(reflect.TypeOf(arg).String())[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunc (p *printer) printComplex(v any, verb rune) {[m
+[32m+[m	[32mp.buf.writeByte('(')[m
+[32m+[m	[32mswitch v := v.(type) {[m
+[32m+[m	[32mcase complex64:[m
+[32m+[m		[32mp.printFloat(real(v), verb)[m
+[32m+[m		[32mif imag(v) >= 0 {[m
+[32m+[m			[32mp.buf.writeByte('+')[m
+[32m+[m		[32m}[m
+[32m+[m		[32mp.printFloat(imag(v), verb)[m
+[32m+[m	[32mcase complex128:[m
+[32m+[m		[32mp.printFloat(real(v), verb)[m
+[32m+[m		[32mif imag(v) >= 0 {[m
+[32m+[m			[32mp.buf.writeByte('+')[m
+[32m+[m		[32m}[m
+[32m+[m		[32mp.printFloat(imag(v), verb)[m
+[32m+[m	[32mdefault:[m
+[32m+[m		[32mp.buf.writeString(percentBangString)[m
+[32m+[m		[32mp.buf.writeByte(byte(verb))[m
+[32m+[m		[32mp.buf.writeString(badVerbString)[m
+[32m+[m		[32mreturn[m
+[32m+[m	[32m}[m
+[32m+[m	[32mp.buf.writeByte('i')[m
+[32m+[m	[32mp.buf.writeByte(')')[m
+[32m+[m[32m}[m
+[1mdiff --git a/printarg.go b/printarg.go[m
+[1mnew file mode 100644[m
+[1mindex 0000000..40743a0[m
+[1m--- /dev/null[m
+[1m+++ b/printarg.go[m
+[36m@@ -0,0 +1,70 @@[m
+[32m+[m[32mpackage xprint[m
+[32m+[m
+[32m+[m[32mimport ([m
+[32m+[m	[32m"reflect"[m
+[32m+[m	[32m"strconv"[m
+[32m+[m
+[32m+[m	[32m"gopkg.hlmpn.dev/pkg/go-logger"[m
+[32m+[m[32m)[m
+[32m+[m
+[32m+[m[32m// printArg formats arg in the manner specified by the verb[m
+[32m+[m[32m// and appends it to p.buf.[m
+[32m+[m[32mfunc (p *printer) printArg(arg any, verb rune) {[m
+[32m+[m
+[32m+[m	[32m// Handle nil[m
+[32m+[m	[32mif arg == nil {[m
+[32m+[m		[32mlogger.Warn("Trigger: arg == nil")[m
+[32m+[m		[32mswitch verb {[m
+[32m+[m		[32mcase 'T', 'v':[m
+[32m+[m			[32mp.buf.writeString(nilString)[m
+[32m+[m		[32mdefault:[m
+[32m+[m			[32mp.buf.writeString(percentBangString)[m
+[32m+[m			[32mp.buf = append(p.buf, byte(verb))[m
+[32m+[m			[32mp.buf.writeString(nilString)[m
+[32m+[m		[32m}[m
+[32m+[m		[32mreturn[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32m// Handle based on type and verb[m
+[32m+[m	[32mlogger.Logf("verb: %s", string(verb))[m
+[32m+[m	[32mswitch verb {[m
+[32m+[m	[32mcase 'T':[m
+[32m+[m		[32mp.printReflectType(arg)[m
+[32m+[m		[32mreturn[m
+[32m+[m	[32mcase 't':[m
+[32m+[m		[32mp.printBool(arg)[m
+[32m+[m		[32mreturn[m
+[32m+[m	[32mcase 'p':[m
+[32m+[m		[32mlogger.Printf("Trigger: p in printarg")[m
+[32m+[m		[32mp.fmtPointer(reflect.ValueOf(arg), verb)[m
+[32m+[m	[32m}[m
+[32m+[m	[32m// Handle by type[m
+[32m+[m	[32mswitch v := arg.(type) {[m
+[32m+[m	[32mcase []byte:[m
+[32m+[m		[32mp.buf = append(*p.fmt.buf, v...)[m
+[32m+[m	[32mcase string:[m
+[32m+[m		[32mp.buf = append(p.buf, v...)[m
+[32m+[m	[32mcase bool:[m
+[32m+[m		[32mswitch verb {[m
+[32m+[m		[32mcase 't':[m
+[32m+[m			[32mp.printBool(v)[m
+[32m+[m		[32mcase 's':[m
+[32m+[m			[32mboolstr := percentBangString + "s(" + "bool" + "=" + strconv.FormatBool(v) + ")"[m
+[32m+[m			[32mp.buf = append(p.buf, boolstr...)[m
+[32m+[m		[32m}[m
+[32m+[m	[32mcase int, int8, int16, int32, int64:[m
+[32m+[m		[32mp.printInt(v, 10, verb)[m
+[32m+[m	[32mcase uint, uint8, uint16, uint32, uint64, uintptr:[m
+[32m+[m		[32mp.printInt(v, 10, verb)[m
+[32m+[m	[32mcase float32, float64:[m
+[32m+[m		[32mp.printFloat(v, verb)[m
+[32m+[m	[32mcase complex64, complex128:[m
+[32m+[m		[32mp.printComplex(v, verb)[m
+[32m+[m	[32mdefault:[m
+[32m+[m		[32mif p.handleMethods(verb) {[m
+[32m+[m			[32mreturn[m
+[32m+[m		[32m}[m
+[32m+[m		[32mp.value = reflect.ValueOf(p.arg)[m
+[32m+[m		[32mp.printValue(p.value, verb, 0)[m
+[32m+[m	[32m}[m
+[32m+[m[32m}[m
+[1mdiff --git a/printer.go b/printer.go[m
+[1mnew file mode 100644[m
+[1mindex 0000000..bd51bad[m
+[1m--- /dev/null[m
+[1m+++ b/printer.go[m
+[36m@@ -0,0 +1,168 @@[m
+[32m+[m[32mpackage xprint[m
+[32m+[m
+[32m+[m[32mimport ([m
+[32m+[m	[32m"reflect"[m
+[32m+[m	[32m"strconv"[m
+[32m+[m	[32m"sync"[m
+[32m+[m[32m)[m
+[32m+[m
+[32m+[m[32m// pp is used to store a printer's state[m
+[32m+[m[32mtype printer struct {[m
+[32m+[m	[32mbuf   buffer[m
+[32m+[m	[32marg   any[m
+[32m+[m	[32mvalue reflect.Value[m
+[32m+[m	[32mfmt   fmt[m
+[32m+[m	[32m// Track recursive pointer formatting[m
+[32m+[m	[32mvisitedPtrs visited[m
+[32m+[m	[32mrecursing   bool[m
+[32m+[m	[32m// reordered records whether the format string used argument reordering.[m
+[32m+[m	[32mreordered bool[m
+[32m+[m	[32m// goodArgNum records whether the most recent reordering directive was valid.[m
+[32m+[m	[32mgoodArgNum bool[m
+[32m+[m	[32m// panicking is set by catchPanic to avoid infinite panic, recover, panic, ... recursion.[m
+[32m+[m	[32mpanicking bool[m
+[32m+[m	[32m// erroring is set when printing an error string to guard against calling handleMethods.[m
+[32m+[m	[32merroring bool[m
+[32m+[m	[32m// wrapErrs is set when the format string may contain a %w verb.[m
+[32m+[m	[32mwrapErrs bool[m
+[32m+[m	[32m// wrappedErrs records the targets of the %w verb.[m
+[32m+[m	[32mwrappedErrs []int[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunc (p *printer) argAsString() string {[m
+[32m+[m	[32mreturn p.arg.(string)[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunc (p *printer) ArgIsString() bool {[m
+[32m+[m	[32m_, ok := p.arg.(string)[m
+[32m+[m	[32mreturn ok[m
+[32m+[m[32m}[m
+[32m+[m[32mfunc (p *printer) ArgIsBytes() bool {[m
+[32m+[m	[32m_, ok := p.arg.([]byte)[m
+[32m+[m	[32mreturn ok[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m// newPrinter allocates a new pp struct or grabs a cached one.[m
+[32m+[m[32mfunc newPrinter() *printer {[m
+[32m+[m	[32mp := ppFree.Get().(*printer)[m
+[32m+[m	[32mp.fmt.init(&p.buf)[m
+[32m+[m	[32mp.visitedPtrs.init()[m
+[32m+[m	[32mp.recursing = false[m
+[32m+[m	[32mreturn p[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m// free saves used pp structs in ppFree; avoids an allocation per invocation.[m
+[32m+[m[32mfunc (p *printer) free() {[m
+[32m+[m	[32mif cap(p.buf) > 1024*64 {[m
+[32m+[m		[32mp.buf = nil[m
+[32m+[m	[32m} else {[m
+[32m+[m		[32mp.buf = p.buf[:0][m
+[32m+[m	[32m}[m
+[32m+[m	[32mp.arg = nil[m
+[32m+[m	[32mp.value = reflect.Value{}[m
+[32m+[m	[32mp.visitedPtrs.ptrs = nil[m
+[32m+[m	[32mp.recursing = false[m
+[32m+[m	[32mppFree.Put(p)[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mvar ppFree = &sync.Pool{[m
+[32m+[m	[32mNew: func() any { return new(printer) },[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m// argNumber returns the next argument to evaluate, which is either the value of the passed-in[m
+[32m+[m[32m// argNum or the value of the bracketed integer that begins format[i:]. It also returns[m
+[32m+[m[32m// the new value of i, that is, the index of the next byte of the format to process.[m
+[32m+[m[32mfunc (p *printer) argNumber(argNum int, format string, i int, numArgs int) (newArgNum, newi int, found bool) {[m
+[32m+[m	[32mif len(format) <= i || format[i] != '[' {[m
+[32m+[m		[32mreturn argNum, i, false[m
+[32m+[m	[32m}[m
+[32m+[m	[32mp.reordered = true[m
+[32m+[m	[32mindex, wid, ok := parseArgNumber(format[i:])[m
+[32m+[m	[32mif ok && 0 <= index && index < numArgs {[m
+[32m+[m		[32mreturn index, i + wid, true[m
+[32m+[m	[32m}[m
+[32m+[m	[32mp.goodArgNum = false[m
+[32m+[m	[32mreturn argNum, i + wid, ok[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunc (p *printer) badArgNum(verb rune) {[m
+[32m+[m	[32mp.buf.writeString(percentBangString)[m
+[32m+[m	[32mp.buf.writeRune(verb)[m
+[32m+[m	[32mp.buf.writeString(badIndexString)[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunc (p *printer) missingArg(verb rune) {[m
+[32m+[m	[32mp.buf.writeString(percentBangString)[m
+[32m+[m	[32mp.buf.writeRune(verb)[m
+[32m+[m	[32mp.buf.writeString(missingString)[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunc (p *printer) writeStringArg() {[m
+[32m+[m	[32mp.buf = append(p.buf, p.arg.(string)...)[m
+[32m+[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunc (p *printer) printFloat(v any, verb rune) {[m
+[32m+[m	[32mvar str string[m
+[32m+[m	[32mswitch v := v.(type) {[m
+[32m+[m	[32mcase float32:[m
+[32m+[m		[32mstr = strconv.FormatFloat(float64(v), byte(verb), p.fmt.prec, 32)[m
+[32m+[m	[32mcase float64:[m
+[32m+[m		[32mstr = strconv.FormatFloat(v, byte(verb), p.fmt.prec, 64)[m
+[32m+[m	[32mdefault:[m
+[32m+[m		[32mp.buf.writeString(percentBangString)[m
+[32m+[m		[32mp.buf.writeByte(byte(verb))[m
+[32m+[m		[32mp.buf.writeString(badVerbString)[m
+[32m+[m		[32mreturn[m
+[32m+[m	[32m}[m
+[32m+[m	[32mp.buf.writeString(str)[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m// handleMethods checks if the argument implements special formatting interfaces.[m
+[32m+[m[32mfunc (p *printer) catchPanic(arg any, verb rune, method string) {[m
+[32m+[m	[32mif err := recover(); err != nil {[m
+[32m+[m		[32m// If it's a nil pointer, just say "<nil>"[m
+[32m+[m		[32mif v := reflect.ValueOf(arg); v.Kind() == reflect.Pointer && v.IsNil() {[m
+[32m+[m			[32mp.buf.writeString(nilAngleString)[m
+[32m+[m			[32mreturn[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32m// Otherwise print a concise panic message[m
+[32m+[m		[32mp.buf.writeString(percentBangString)[m
+[32m+[m		[32mp.buf.writeByte(byte(verb))[m
+[32m+[m		[32mp.buf.writeString("(PANIC=")[m
+[32m+[m		[32mp.buf.writeString(method)[m
+[32m+[m		[32mp.buf.writeString(" method: ")[m
+[32m+[m		[32mp.printArg(err, 'v')[m
+[32m+[m		[32mp.buf.writeByte(')')[m
+[32m+[m	[32m}[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunc (p *printer) handleMethods(verb rune) (handled bool) {[m
+[32m+[m	[32m// Handle error values[m
+[32m+[m	[32mif err, ok := p.arg.(error); ok {[m
+[32m+[m		[32mdefer p.catchPanic(p.arg, verb, "Error")[m
+[32m+[m		[32mp.fmt.fmtString(err.Error())[m
+[32m+[m		[32mreturn true[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32m// Handle GoStringer for %#v[m
+[32m+[m	[32mif p.fmt.sharpV {[m
+[32m+[m		[32mif stringer, ok := p.arg.(GoStringer); ok {[m
+[32m+[m			[32mdefer p.catchPanic(p.arg, verb, "GoString")[m
+[32m+[m			[32mp.fmt.fmtString(stringer.GoString())[m
+[32m+[m			[32mreturn true[m
+[32m+[m		[32m}[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32m// Handle Stringer for %v, %s[m
+[32m+[m	[32mif verb == 'v' || verb == 's' {[m
+[32m+[m		[32mif stringer, ok := p.arg.(Stringer); ok {[m
+[32m+[m			[32mdefer p.catchPanic(p.arg, verb, "String")[m
+[32m+[m			[32mp.fmt.fmtString(stringer.String())[m
+[32m+[m			[32mreturn true[m
+[32m+[m		[32m}[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32mreturn false[m
+[32m+[m[32m}[m
+[1mdiff --git a/printf.go b/printf.go[m
+[1mnew file mode 100644[m
+[1mindex 0000000..4a48d48[m
+[1m--- /dev/null[m
+[1m+++ b/printf.go[m
+[36m@@ -0,0 +1,128 @@[m
+[32m+[m[32mpackage xprint[m
+[32m+[m
+[32m+[m[32mimport ([m
+[32m+[m	[32m"strings"[m
+[32m+[m[32m)[m
+[32m+[m
+[32m+[m[32m// onlyContainsStringPlaceholders checks if the format string only contains %s placeholders[m
+[32m+[m[32m// and not any other verbs or flags[m
+[32m+[m[32mfunc onlyContainsStringPlaceholders(format string) bool {[m
+[32m+[m	[32mverbFound := false[m
+[32m+[m	[32mfor i := 0; i < len(format); {[m
+[32m+[m		[32m// Fast path for non-% characters[m
+[32m+[m		[32mif format[i] != '%' {[m
+[32m+[m			[32mi++[m
+[32m+[m			[32mcontinue[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32m// We have a '%', check next character[m
+[32m+[m		[32mif i+1 >= len(format) {[m
+[32m+[m			[32m// Trailing % with no verb, not a valid format string[m
+[32m+[m			[32mreturn false[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32m// Handle escaped percent: %%[m
+[32m+[m		[32mif format[i+1] == '%' {[m
+[32m+[m			[32mi += 2 // Skip both % characters[m
+[32m+[m			[32mcontinue[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32m// Process potential verb[m
+[32m+[m		[32mi++ // Skip past the %[m
+[32m+[m
+[32m+[m		[32m// Skip any digits for argument position if present (for indexed formatting)[m
+[32m+[m		[32mfor i < len(format) && format[i] >= '0' && format[i] <= '9' {[m
+[32m+[m			[32mi++[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32m// If we reach the end without a verb, not valid[m
+[32m+[m		[32mif i >= len(format) {[m
+[32m+[m			[32mreturn false[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32m// Check for flags/width/precision which we don't support in fast path[m
+[32m+[m		[32m// (anything that's not the 's' verb directly)[m
+[32m+[m		[32mswitch format[i] {[m
+[32m+[m		[32mcase '.', '+', '-', ' ', '#', '0', '*':[m
+[32m+[m			[32m// Flags or width/precision indicators not supported in fast path[m
+[32m+[m			[32mreturn false[m
+[32m+[m		[32mcase 's':[m
+[32m+[m			[32m// Found %s, continue checking[m
+[32m+[m			[32mverbFound = true[m
+[32m+[m			[32mi++[m
+[32m+[m		[32mdefault:[m
+[32m+[m			[32m// Not %s, not suitable for fast path[m
+[32m+[m			[32mreturn false[m
+[32m+[m		[32m}[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32m// Need at least one %s verb to use the fast path[m
+[32m+[m	[32mreturn verbFound[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m// allArgsAreStringLike checks if all arguments are strings or []byte[m
+[32m+[m[32mfunc allArgsAreStringLike(args []any) bool {[m
+[32m+[m	[32m// Early return for empty args[m
+[32m+[m	[32mif len(args) == 0 {[m
+[32m+[m		[32mreturn false[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32m// Check each argument type[m
+[32m+[m	[32mfor _, arg := range args {[m
+[32m+[m		[32mif arg == nil {[m
+[32m+[m			[32mreturn false[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32m// Use type assertions directly for better performance[m
+[32m+[m		[32m_, isString := arg.(string)[m
+[32m+[m		[32m_, isByteSlice := arg.([]byte)[m
+[32m+[m
+[32m+[m		[32mif !isString && !isByteSlice {[m
+[32m+[m			[32mreturn false[m
+[32m+[m		[32m}[m
+[32m+[m	[32m}[m
+[32m+[m	[32mreturn true[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m// fastStringFormat is a fast implementation for format strings that only contain %s[m
+[32m+[m[32m// and where all arguments are strings or []byte[m
+[32m+[m[32mfunc fastStringFormat(format string, args []any) string {[m
+[32m+[m	[32m// Preallocate a string builder[m
+[32m+[m	[32mvar result strings.Builder[m
+[32m+[m
+[32m+[m	[32margIndex := 0[m
+[32m+[m	[32mfor i := 0; i < len(format); i++ {[m
+[32m+[m		[32mif format[i] != '%' {[m
+[32m+[m			[32mresult.WriteByte(format[i])[m
+[32m+[m			[32mcontinue[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32m// Handle escaped percent: %%[m
+[32m+[m		[32mif i+1 < len(format) && format[i+1] == '%' {[m
+[32m+[m			[32mresult.WriteByte('%')[m
+[32m+[m			[32mi++[m
+[32m+[m			[32mcontinue[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32m// Process a %s verb[m
+[32m+[m		[32mi++[m
+[32m+[m
+[32m+[m		[32m// Skip any digits for argument position if present[m
+[32m+[m		[32mfor i < len(format) && format[i] >= '0' && format[i] <= '9' {[m
+[32m+[m			[32mi++[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32m// We have a %s placeholder, replace it with the argument[m
+[32m+[m		[32mif argIndex < len(args) {[m
+[32m+[m			[32mswitch arg := args[argIndex].(type) {[m
+[32m+[m			[32mcase string:[m
+[32m+[m				[32mresult.WriteString(arg)[m
+[32m+[m			[32mcase []byte:[m
+[32m+[m				[32mresult.Write(arg)[m
+[32m+[m			[32m}[m
+[32m+[m			[32margIndex++[m
+[32m+[m		[32m}[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32mreturn result.String()[m
+[32m+[m[32m}[m
+[1mdiff --git a/stringer.go b/stringer.go[m
+[1mnew file mode 100644[m
+[1mindex 0000000..8dae84d[m
+[1m--- /dev/null[m
+[1m+++ b/stringer.go[m
+[36m@@ -0,0 +1,11 @@[m
+[32m+[m[32mpackage xprint[m
+[32m+[m
+[32m+[m[32m// Stringer is implemented by any value that has a String method.[m
+[32m+[m[32mtype Stringer interface {[m
+[32m+[m	[32mString() string[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m// GoStringer is implemented by any value that has a GoString method.[m
+[32m+[m[32mtype GoStringer interface {[m
+[32m+[m	[32mGoString() string[m
+[32m+[m[32m}[m
+[1mdiff --git a/utils.go b/utils.go[m
+[1mnew file mode 100644[m
+[1mindex 0000000..2cb700d[m
+[1m--- /dev/null[m
+[1m+++ b/utils.go[m
+[36m@@ -0,0 +1,8 @@[m
+[32m+[m[32mpackage xprint[m
+[32m+[m
+[32m+[m[32m// tooLarge reports whether the magnitude of the integer is[m
+[32m+[m[32m// too large to be used as a formatting width or precision.[m
+[32m+[m[32mfunc tooLarge(x int) bool {[m
+[32m+[m	[32mconst maxLimit int = 1e6[m
+[32m+[m	[32mreturn x > maxLimit || x < -maxLimit[m
+[32m+[m[32m}[m
+[1mdiff --git a/validation/README.md b/validation/README.md[m
+[1mnew file mode 100644[m
+[1mindex 0000000..2a602b7[m
+[1m--- /dev/null[m
+[1m+++ b/validation/README.md[m
+[36m@@ -0,0 +1,39 @@[m
+[32m+[m[32m# xprint validation[m
+[32m+[m
+[32m+[m[32mThis package contains the validation and benchmarking tools for the xprint package. It is not part of the exported API and is only used for development and testing.[m
+[32m+[m
+[32m+[m[32m## Structure[m
+[32m+[m
+[32m+[m[32m- `main.go` - Entry point for validation CLI[m
+[32m+[m[32m- `simple.go` - API compatibility tests comparing to fmt.Sprintf[m
+[32m+[m[32m- `newbench.go` - Performance benchmarking suite[m
+[32m+[m[32m- `runtest.go` - Additional test utilities[m
+[32m+[m[32m- `internal/largeints` - Test data utilities[m
+[32m+[m
+[32m+[m[32m## Usage[m
+[32m+[m
+[32m+[m[32mFirst, build the validation binary:[m
+[32m+[m
+[32m+[m[32m```bash[m
+[32m+[m[32mgo build -o validation.bin .[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32mRun the different validation tools:[m
+[32m+[m
+[32m+[m[32m```bash[m
+[32m+[m[32m# Run compatibility tests[m
+[32m+[m[32m./validation.bin simple[m
+[32m+[m
+[32m+[m[32m# Run performance benchmarks[m
+[32m+[m[32m./validation.bin newbench[m
+[32m+[m
+[32m+[m[32m# Run quick tests[m
+[32m+[m[32m./validation.bin quick[m
+[32m+[m
+[32m+[m[32m# Run mixed type tests[m
+[32m+[m[32m./validation.bin mixedtype[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m## CI Integration[m
+[32m+[m
+[32m+[m[32mThis validation suite is automatically run in the CI pipeline to ensure compatibility and performance standards are maintained.[m[41m [m
+\ No newline at end of file[m
