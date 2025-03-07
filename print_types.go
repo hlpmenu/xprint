@@ -3,24 +3,18 @@ package xprint
 import (
 	"reflect"
 	"unsafe"
-
-	"gopkg.hlmpn.dev/pkg/go-logger"
 )
 
 func (p *printer) fmtPointer(value any, verb rune) {
 	var u uintptr
 	switch v := value.(type) {
 	case unsafe.Pointer:
-		logger.Warn("Trigger: unsafe.Pointer")
 		u = uintptr(v)
 	case uintptr:
-		logger.Warn("Trigger: uintptr")
 		u = v
 	case reflect.Value:
-		logger.Warn("Trigger: reflect.Value")
 		u = v.Pointer()
 	default:
-		logger.Warnf("Trigger: default with verb: %s", string(verb))
 		switch verb {
 		case 's', 'p', 'v':
 			// Do nothing

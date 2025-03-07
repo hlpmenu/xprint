@@ -13,7 +13,6 @@ func (p *printer) printArg(arg any, verb rune) {
 
 	// Handle nil
 	if arg == nil {
-		logger.Warn("Trigger: arg == nil")
 		switch verb {
 		case 'T', 'v':
 			p.buf.writeString(nilString)
@@ -35,7 +34,6 @@ func (p *printer) printArg(arg any, verb rune) {
 		p.printBool(arg)
 		return
 	case 'p':
-		logger.Printf("Trigger: p in printarg")
 		p.fmtPointer(reflect.ValueOf(arg), verb)
 	}
 	// Handle by type
