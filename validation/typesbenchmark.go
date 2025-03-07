@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"os"
 	"time"
 
 	"gopkg.hlmpn.dev/pkg/go-logger"
@@ -165,135 +166,145 @@ func TestFloats() {
 	logger.Log("Testing float formatting issues...")
 	LogLine()
 
-	// Test raw float constants (interface{} type inference)
-	logger.Log("Test 1: Raw float constants as interface{} arguments")
-
-	// First, test fmt self-consistency
-	fmt1 := fmt.Sprintf("Float: %f", 3.14159)
-	fmt2 := fmt.Sprintf("Float: %f", 3.14159)
-	logger.Log("fmt attempt 1: '" + fmt1 + "'")
-	logger.Log("fmt attempt 2: '" + fmt2 + "'")
-	if fmt1 != fmt2 {
-		logger.LogErrorf("fmt inconsistent with itself!")
-	} else {
-		logger.Log("fmt consistent with itself")
-	}
-
-	// Then, test xprint self-consistency
-	xprint1 := xprint.Printf("Float: %f", 3.14159)
-	xprint2 := xprint.Printf("Float: %f", 3.14159)
-	logger.Log("xprint attempt 1: '" + xprint1 + "'")
-	logger.Log("xprint attempt 2: '" + xprint2 + "'")
-	if xprint1 != xprint2 {
-		logger.LogErrorf("xprint inconsistent with itself!")
-	} else {
-		logger.Log("xprint consistent with itself")
-	}
-
-	// Compare fmt vs xprint
-	logger.Log("Comparing fmt vs xprint:")
-	logger.Log("fmt output: '" + fmt1 + "'")
-	logger.Log("xprint output: '" + xprint1 + "'")
-	if fmt1 != xprint1 {
-		logger.LogErrorf("MISMATCH: fmt vs xprint for raw float")
-	} else {
-		logger.Log("fmt and xprint match")
-	}
+	// Test with different precision formats (moved to first)
+	logger.Log("Test 1: Different precision formats")
 	LogLine()
 
-	// Test with explicit float32
-	logger.Log("Test 2: Explicit float32 variable")
-	var f32 float32 = 3.14159
-
-	fmt1 = fmt.Sprintf("Float32: %f", f32)
-	fmt2 = fmt.Sprintf("Float32: %f", f32)
-	logger.Log("fmt float32 attempt 1: '" + fmt1 + "'")
-	logger.Log("fmt float32 attempt 2: '" + fmt2 + "'")
-
-	xprint1 = xprint.Printf("Float32: %f", f32)
-	xprint2 = xprint.Printf("Float32: %f", f32)
-	logger.Log("xprint float32 attempt 1: '" + xprint1 + "'")
-	logger.Log("xprint float32 attempt 2: '" + xprint2 + "'")
-
-	// Compare fmt vs xprint for float32
-	logger.Log("Comparing fmt vs xprint for float32:")
-	logger.Log("fmt output: '" + fmt1 + "'")
-	logger.Log("xprint output: '" + xprint1 + "'")
-	if fmt1 != xprint1 {
-		logger.LogErrorf("MISMATCH for float32")
-	} else {
-		logger.Log("fmt and xprint match for float32")
-	}
-	LogLine()
-
-	// Test with explicit float64
-	logger.Log("Test 3: Explicit float64 variable")
 	var f64 float64 = 3.14159
-
-	fmt1 = fmt.Sprintf("Float64: %f", f64)
-	fmt2 = fmt.Sprintf("Float64: %f", f64)
-	logger.Log("fmt float64 attempt 1: '" + fmt1 + "'")
-	logger.Log("fmt float64 attempt 2: '" + fmt2 + "'")
-
-	xprint1 = xprint.Printf("Float64: %f", f64)
-	xprint2 = xprint.Printf("Float64: %f", f64)
-	logger.Log("xprint float64 attempt 1: '" + xprint1 + "'")
-	logger.Log("xprint float64 attempt 2: '" + xprint2 + "'")
-
-	// Compare fmt vs xprint for float64
-	logger.Log("Comparing fmt vs xprint for float64:")
-	logger.Log("fmt output: '" + fmt1 + "'")
-	logger.Log("xprint output: '" + xprint1 + "'")
-	if fmt1 != xprint1 {
-		logger.LogErrorf("MISMATCH for float64")
-	} else {
-		logger.Log("fmt and xprint match for float64")
-	}
-	LogLine()
-
-	// Test with different precision formats
-	logger.Log("Test 4: Different precision formats")
 
 	precisions := []string{
 		"%.0f", "%.1f", "%.2f", "%.3f", "%.6f", "%f", "%g", "%e",
 	}
 
 	for _, prec := range precisions {
-		formatDesc := "Format " + prec + ":"
 		logger.Log("Testing precision format: " + prec)
 
 		// Use separate format strings for the description and the actual format
-		fmt1 = fmt.Sprintf(prec, f64)
-		xprint1 = xprint.Printf(prec, f64)
+		fmt1 := fmt.Sprintf(prec, f64)
+		xprint1 := xprint.Printf(prec, f64)
 
-		logger.Log(formatDesc)
-		logger.Log("fmt output: '" + fmt1 + "'")
-		logger.Log("xprint output: '" + xprint1 + "'")
+		logger.LogOrangef("fmt output: '%s'", fmt1)
+		logger.LogPurplef("xprint output: '%s'", xprint1)
 
 		if fmt1 != xprint1 {
-			// Only skip the map case, all others should be exact matches
-			logger.LogErrorf("MISMATCH for format " + prec)
+			logger.LogErrorf("❌ MISMATCH for format %s", prec)
+			// Exit with an error code if the formats don't match
+			os.Exit(1)
 		} else {
-			logger.Log("Match for format " + prec)
+			logger.LogSuccessf("✅ Match for format %s", prec)
 		}
-		logger.Log("")
+		LogLine() // Add LogLine after each test case for better separation
+	}
+
+	// Test raw float constants (interface{} type inference)
+	logger.Log("Test 2: Raw float constants as interface{} arguments")
+	LogLine()
+
+	// First, test fmt self-consistency
+	fmt1 := fmt.Sprintf("Float: %f", 3.14159)
+	fmt2 := fmt.Sprintf("Float: %f", 3.14159)
+	logger.LogOrangef("fmt attempt 1: '%s'", fmt1)
+	logger.LogOrangef("fmt attempt 2: '%s'", fmt2)
+	if fmt1 != fmt2 {
+		logger.LogErrorf("❌ fmt inconsistent with itself!")
+		os.Exit(1)
+	} else {
+		logger.LogSuccessf("✅ fmt consistent with itself")
+	}
+
+	// Then, test xprint self-consistency
+	xprint1 := xprint.Printf("Float: %f", 3.14159)
+	xprint2 := xprint.Printf("Float: %f", 3.14159)
+	logger.LogPurplef("xprint attempt 1: '%s'", xprint1)
+	logger.LogPurplef("xprint attempt 2: '%s'", xprint2)
+	if xprint1 != xprint2 {
+		logger.LogErrorf("❌ xprint inconsistent with itself!")
+		os.Exit(1)
+	} else {
+		logger.LogSuccessf("✅ xprint consistent with itself")
+	}
+
+	// Compare fmt vs xprint
+	logger.Log("Comparing fmt vs xprint:")
+	logger.LogOrangef("fmt output: '%s'", fmt1)
+	logger.LogPurplef("xprint output: '%s'", xprint1)
+	if fmt1 != xprint1 {
+		logger.LogErrorf("❌ MISMATCH: fmt vs xprint for raw float")
+		os.Exit(1)
+	} else {
+		logger.LogSuccessf("✅ fmt and xprint match")
+	}
+	LogLine()
+
+	// Test with explicit float32
+	logger.Log("Test 3: Explicit float32 variable")
+	LogLine()
+	var f32 float32 = 3.14159
+
+	fmt1 = fmt.Sprintf("Float32: %f", f32)
+	fmt2 = fmt.Sprintf("Float32: %f", f32)
+	logger.LogOrangef("fmt float32 attempt 1: '%s'", fmt1)
+	logger.LogOrangef("fmt float32 attempt 2: '%s'", fmt2)
+
+	xprint1 = xprint.Printf("Float32: %f", f32)
+	xprint2 = xprint.Printf("Float32: %f", f32)
+	logger.LogPurplef("xprint float32 attempt 1: '%s'", xprint1)
+	logger.LogPurplef("xprint float32 attempt 2: '%s'", xprint2)
+
+	// Compare fmt vs xprint for float32
+	logger.Log("Comparing fmt vs xprint for float32:")
+	logger.LogOrangef("fmt output: '%s'", fmt1)
+	logger.LogPurplef("xprint output: '%s'", xprint1)
+	if fmt1 != xprint1 {
+		logger.LogErrorf("❌ MISMATCH for float32")
+		os.Exit(1)
+	} else {
+		logger.LogSuccessf("✅ fmt and xprint match for float32")
+	}
+	LogLine()
+
+	// Test with explicit float64
+	logger.Log("Test 4: Explicit float64 variable")
+	LogLine()
+
+	fmt1 = fmt.Sprintf("Float64: %f", f64)
+	fmt2 = fmt.Sprintf("Float64: %f", f64)
+	logger.LogOrangef("fmt float64 attempt 1: '%s'", fmt1)
+	logger.LogOrangef("fmt float64 attempt 2: '%s'", fmt2)
+
+	xprint1 = xprint.Printf("Float64: %f", f64)
+	xprint2 = xprint.Printf("Float64: %f", f64)
+	logger.LogPurplef("xprint float64 attempt 1: '%s'", xprint1)
+	logger.LogPurplef("xprint float64 attempt 2: '%s'", xprint2)
+
+	// Compare fmt vs xprint for float64
+	logger.Log("Comparing fmt vs xprint for float64:")
+	logger.LogOrangef("fmt output: '%s'", fmt1)
+	logger.LogPurplef("xprint output: '%s'", xprint1)
+	if fmt1 != xprint1 {
+		logger.LogErrorf("❌ MISMATCH for float64")
+		os.Exit(1)
+	} else {
+		logger.LogSuccessf("✅ fmt and xprint match for float64")
 	}
 	LogLine()
 
 	// Test with slice of interface{} containing float
 	logger.Log("Test 5: Slice of interface{} containing float")
+	LogLine()
 	slice := []interface{}{3.14159}
 
 	fmt1 = fmt.Sprintf("Slice float: %f", slice[0])
 	xprint1 = xprint.Printf("Slice float: %f", slice[0])
 
-	logger.Log("fmt slice float: '" + fmt1 + "'")
-	logger.Log("xprint slice float: '" + xprint1 + "'")
+	logger.LogOrangef("fmt slice float: '%s'", fmt1)
+	logger.LogPurplef("xprint slice float: '%s'", xprint1)
 
 	if fmt1 != xprint1 {
-		logger.LogErrorf("MISMATCH for slice float")
+		logger.LogErrorf("❌ MISMATCH for slice float")
+		os.Exit(1)
 	} else {
-		logger.Log("fmt and xprint match for slice float")
+		logger.LogSuccessf("✅ fmt and xprint match for slice float")
 	}
 	LogLine()
 }
