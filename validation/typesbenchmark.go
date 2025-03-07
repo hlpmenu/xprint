@@ -171,8 +171,8 @@ func TestFloats() {
 	// First, test fmt self-consistency
 	fmt1 := fmt.Sprintf("Float: %f", 3.14159)
 	fmt2 := fmt.Sprintf("Float: %f", 3.14159)
-	logger.LogOrangef("fmt attempt 1: '%s'", fmt1)
-	logger.LogOrangef("fmt attempt 2: '%s'", fmt2)
+	logger.Log("fmt attempt 1: '" + fmt1 + "'")
+	logger.Log("fmt attempt 2: '" + fmt2 + "'")
 	if fmt1 != fmt2 {
 		logger.Log("fmt inconsistent with itself!")
 	} else {
@@ -182,8 +182,8 @@ func TestFloats() {
 	// Then, test xprint self-consistency
 	xprint1 := xprint.Printf("Float: %f", 3.14159)
 	xprint2 := xprint.Printf("Float: %f", 3.14159)
-	logger.LogPurplef("xprint attempt 1: '%s'", xprint1)
-	logger.LogPurplef("xprint attempt 2: '%s'", xprint2)
+	logger.Log("xprint attempt 1: '" + xprint1 + "'")
+	logger.Log("xprint attempt 2: '" + xprint2 + "'")
 	if xprint1 != xprint2 {
 		logger.Log("xprint inconsistent with itself!")
 	} else {
@@ -207,13 +207,13 @@ func TestFloats() {
 
 	fmt1 = fmt.Sprintf("Float32: %f", f32)
 	fmt2 = fmt.Sprintf("Float32: %f", f32)
-	logger.LogOrangef("fmt float32 attempt 1: '%s'", fmt1)
-	logger.LogOrangef("fmt float32 attempt 2: '%s'", fmt2)
+	logger.Log("fmt float32 attempt 1: '" + fmt1 + "'")
+	logger.Log("fmt float32 attempt 2: '" + fmt2 + "'")
 
 	xprint1 = xprint.Printf("Float32: %f", f32)
 	xprint2 = xprint.Printf("Float32: %f", f32)
-	logger.LogPurplef("xprint float32 attempt 1: '%s'", xprint1)
-	logger.LogPurplef("xprint float32 attempt 2: '%s'", xprint2)
+	logger.Log("xprint float32 attempt 1: '" + xprint1 + "'")
+	logger.Log("xprint float32 attempt 2: '" + xprint2 + "'")
 
 	// Compare fmt vs xprint for float32
 	logger.Log("Comparing fmt vs xprint for float32:")
@@ -232,13 +232,13 @@ func TestFloats() {
 
 	fmt1 = fmt.Sprintf("Float64: %f", f64)
 	fmt2 = fmt.Sprintf("Float64: %f", f64)
-	logger.LogOrangef("fmt float64 attempt 1: '%s'", fmt1)
-	logger.LogOrangef("fmt float64 attempt 2: '%s'", fmt2)
+	logger.Log("fmt float64 attempt 1: '" + fmt1 + "'")
+	logger.Log("fmt float64 attempt 2: '" + fmt2 + "'")
 
 	xprint1 = xprint.Printf("Float64: %f", f64)
 	xprint2 = xprint.Printf("Float64: %f", f64)
-	logger.LogPurplef("xprint float64 attempt 1: '%s'", xprint1)
-	logger.LogPurplef("xprint float64 attempt 2: '%s'", xprint2)
+	logger.Log("xprint float64 attempt 1: '" + xprint1 + "'")
+	logger.Log("xprint float64 attempt 2: '" + xprint2 + "'")
 
 	// Compare fmt vs xprint for float64
 	logger.Log("Comparing fmt vs xprint for float64:")
@@ -260,7 +260,7 @@ func TestFloats() {
 
 	for _, prec := range precisions {
 		formatDesc := "Format " + prec + ":"
-		logger.Logf("Testing precision format: %s", prec)
+		logger.Log("Testing precision format: " + prec)
 
 		// Use separate format strings for the description and the actual format
 		fmt1 = fmt.Sprintf(prec, f64)
