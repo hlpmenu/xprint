@@ -8,7 +8,6 @@ import (
 // printArg formats arg in the manner specified by the verb
 // and appends it to p.buf.
 func (p *printer) printArg(arg any, verb rune) {
-
 	// Handle nil
 	if arg == nil {
 		switch verb {
@@ -51,8 +50,23 @@ func (p *printer) printArg(arg any, verb rune) {
 		p.printInt(v, 10, verb)
 	case uint, uint8, uint16, uint32, uint64, uintptr:
 		p.printInt(v, 10, verb)
-	case float32, float64:
-		p.printFloat(v, verb)
+	case float32:
+		// If precision is explicitly specified, use printFloat
+		// Otherwise use our specialized formatter with proper defaults
+		if p.fmt.precPresent {
+			p.printFloat(v, verb)
+		} else {
+			p.printFloat32(v, verb)
+		}
+	case float64:
+
+		// If precision is explicitly specified, use printFloat
+		// Otherwise use our specialized formatter with proper defaults
+		if p.fmt.precPresent {
+			p.printFloat(v, verb)
+		} else {
+			p.printFloat64(v, verb)
+		}
 	case complex64, complex128:
 		p.printComplex(v, verb)
 	default:

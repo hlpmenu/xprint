@@ -102,6 +102,12 @@ func (p *printer) writeStringArg() {
 
 }
 
+func (p *printer) printBadVerb(verb rune) {
+	p.buf.writeString(percentBangString)
+	p.buf.writeRune(verb)
+	p.buf.writeString(badVerbString)
+}
+
 func (p *printer) printFloat(v any, verb rune) {
 	var str string
 	switch v := v.(type) {
@@ -110,9 +116,7 @@ func (p *printer) printFloat(v any, verb rune) {
 	case float64:
 		str = strconv.FormatFloat(v, byte(verb), p.fmt.prec, 64)
 	default:
-		p.buf.writeString(percentBangString)
-		p.buf.writeByte(byte(verb))
-		p.buf.writeString(badVerbString)
+		p.printBadVerb(verb)
 		return
 	}
 	p.buf.writeString(str)
