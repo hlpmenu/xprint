@@ -68,7 +68,7 @@ func Errorf(format string, a ...any) error {
 	case 1:
 		// Single wrapped error
 		w := &wrapError{msg: s}
-		w.err, _ = a[wrappedErrs[0]].(error)
+		w.err, _ = a[wrappedErrs[0]].(error) //nolint:errcheck //
 		err = w
 	default:
 		// Multiple wrapped errors

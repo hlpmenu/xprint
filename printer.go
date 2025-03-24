@@ -45,7 +45,7 @@ func (p *printer) ArgIsBytes() bool {
 // newPrinter allocates a new pp struct or grabs a cached one.
 func newPrinter() *printer {
 	// We know this is safe because we're using a sync.Pool
-	p := ppFree.Get().(*printer) //nolint:forcetypeassert //
+	p := ppFree.Get().(*printer) //nolint:forcetypeassert,errcheck //
 	p.fmt.init(&p.buf)
 	p.visitedPtrs.init()
 	p.recursing = false
