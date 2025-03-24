@@ -16,22 +16,22 @@ type printer struct {
 	visitedPtrs visited
 	recursing   bool
 	// reordered records whether the format string used argument reordering.
-	reordered bool
+	reordered bool //nolint:unused //
 	// goodArgNum records whether the most recent reordering directive was valid.
-	goodArgNum bool
+	goodArgNum bool //nolint:unused //
 	// panicking is set by catchPanic to avoid infinite panic, recover, panic, ... recursion.
-	panicking bool
+	panicking bool //nolint:unused //
 	// erroring is set when printing an error string to guard against calling handleMethods.
-	erroring bool
+	erroring bool //nolint:unused //
 	// wrapErrs is set when the format string may contain a %w verb.
-	wrapErrs bool
+	wrapErrs bool //nolint:unused //
 	// wrappedErrs records the targets of the %w verb.
-	wrappedErrs []int
+	wrappedErrs []int //nolint:unused //
 }
 
-func (p *printer) argAsString() string {
-	return p.arg.(string)
-}
+// func (p *printer) argAsString() string {
+// 	return p.arg.(string)
+// }
 
 func (p *printer) ArgIsString() bool {
 	_, ok := p.arg.(string)
@@ -44,7 +44,8 @@ func (p *printer) ArgIsBytes() bool {
 
 // newPrinter allocates a new pp struct or grabs a cached one.
 func newPrinter() *printer {
-	p := ppFree.Get().(*printer)
+	// We know this is safe because we're using a sync.Pool
+	p := ppFree.Get().(*printer) //nolint:forcetypeassert //
 	p.fmt.init(&p.buf)
 	p.visitedPtrs.init()
 	p.recursing = false
@@ -72,35 +73,35 @@ var ppFree = &sync.Pool{
 // argNumber returns the next argument to evaluate, which is either the value of the passed-in
 // argNum or the value of the bracketed integer that begins format[i:]. It also returns
 // the new value of i, that is, the index of the next byte of the format to process.
-func (p *printer) argNumber(argNum int, format string, i int, numArgs int) (newArgNum, newi int, found bool) {
-	if len(format) <= i || format[i] != '[' {
-		return argNum, i, false
-	}
-	p.reordered = true
-	index, wid, ok := parseArgNumber(format[i:])
-	if ok && 0 <= index && index < numArgs {
-		return index, i + wid, true
-	}
-	p.goodArgNum = false
-	return argNum, i + wid, ok
-}
+// func (p *printer) argNumber(argNum int, format string, i int, numArgs int) (newArgNum, newi int, found bool) {
+// 	if len(format) <= i || format[i] != '[' {
+// 		return argNum, i, false
+// 	}
+// 	p.reordered = true
+// 	index, wid, ok := parseArgNumber(format[i:])
+// 	if ok && 0 <= index && index < numArgs {
+// 		return index, i + wid, true
+// 	}
+// 	p.goodArgNum = false
+// 	return argNum, i + wid, ok
+// }
 
-func (p *printer) badArgNum(verb rune) {
-	p.buf.writeString(percentBangString)
-	p.buf.writeRune(verb)
-	p.buf.writeString(badIndexString)
-}
+// func (p *printer) badArgNum(verb rune) {
+// 	p.buf.writeString(percentBangString)
+// 	p.buf.writeRune(verb)
+// 	p.buf.writeString(badIndexString)
+// }
 
-func (p *printer) missingArg(verb rune) {
-	p.buf.writeString(percentBangString)
-	p.buf.writeRune(verb)
-	p.buf.writeString(missingString)
-}
+// func (p *printer) missingArg(verb rune) {
+// 	p.buf.writeString(percentBangString)
+// 	p.buf.writeRune(verb)
+// 	p.buf.writeString(missingString)
+// }
 
-func (p *printer) writeStringArg() {
-	p.buf = append(p.buf, p.arg.(string)...)
+// func (p *printer) writeStringArg() {
+// 	p.buf = append(p.buf, p.arg.(string)...)
 
-}
+// }
 
 func (p *printer) printBadVerb(verb rune) {
 	p.buf.writeString(percentBangString)
@@ -142,7 +143,7 @@ func (p *printer) catchPanic(arg any, verb rune, method string) {
 	}
 }
 
-func (p *printer) handleMethods(verb rune) (handled bool) {
+func (p *printer) handleMethods(verb rune) bool {
 	// Handle error values
 	if err, ok := p.arg.(error); ok {
 		defer p.catchPanic(p.arg, verb, "Error")

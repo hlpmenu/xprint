@@ -1,16 +1,19 @@
-package main
+package benchmark
 
 import (
 	"fmt"
 	"os"
+	"runtime"
 	"strconv"
 	"sync"
 	"time"
 
 	"gopkg.hlmpn.dev/pkg/go-logger"
+
+	"benchmark/internal/largeints"
+	"benchmark/internal/timer"
+
 	xprint "gopkg.hlmpn.dev/pkg/xprint"
-	"gopkg.hlmpn.dev/pkg/xprint/validation/internal/largeints"
-	timer "gopkg.hlmpn.dev/pkg/xprint/validation/timer"
 )
 
 type StringTetSuite struct {
@@ -529,4 +532,17 @@ func (suite *StringTetSuite) ExecAsBytes() []ResultItem {
 	logger.LogSuccessf("Average Fmt per last byt e length: %.2f ns/byte", avgFmtPerStringBLen)
 	LogLine()
 	return results
+}
+
+func forceGC() {
+	runtime.GC()
+	time.Sleep(10 * time.Millisecond) // Ensure GC completes
+}
+func logtype(a interface{}, b ...interface{}) {
+	msg := fmt.Sprintf("1: %T", a)
+	for i, b := range b {
+		msg += fmt.Sprintf(", %d: %T", i+2, b)
+	}
+	logger.Warn(msg)
+
 }

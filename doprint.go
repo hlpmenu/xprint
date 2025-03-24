@@ -20,8 +20,7 @@ func (p *printer) printf(format string, args []any) {
 		// if i > lasti && format[i-1] != '%' {
 		// 	p.buf = append(p.buf, format[lasti:i]...)
 		// }
-		switch i > lasti && format[i-1] != '%' {
-		case true:
+		if i > lasti && format[i-1] != '%' {
 			p.buf = append(p.buf, format[lasti:i]...)
 		}
 
@@ -132,10 +131,12 @@ func (p *printer) printf(format string, args []any) {
 			break
 		}
 		if p.ArgIsString() && verb == 's' && verb != 'T' {
-			p.buf = append(p.buf, p.arg.(string)...)
+			// Linter warns about type assertion due to type alias for p.buf
+			p.buf = append(p.buf, p.arg.(string)...) //nolint:all //
 			continue
 		} else if p.ArgIsBytes() && verb == 's' && verb != 'T' {
-			p.buf = append(p.buf, p.arg.([]byte)...)
+			// Linter warns about type assertion due to type alias for p.buf
+			p.buf = append(p.buf, p.arg.([]byte)...) //nolint:all //
 			continue
 		}
 

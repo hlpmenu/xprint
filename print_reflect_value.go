@@ -65,7 +65,7 @@ func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
 			p.fmt.fmtBytes(v.Bytes())
 		} else {
 			p.buf.writeByte('[')
-			for i := 0; i < v.Len(); i++ {
+			for i := range v.Len() { // Changed to simpler syntax, add test for uint8
 				if i > 0 {
 					p.buf.writeByte(' ')
 				}
@@ -75,7 +75,7 @@ func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
 		}
 	case reflect.Array:
 		p.buf.writeByte('[')
-		for i := 0; i < v.Len(); i++ {
+		for i := range v.Len() {
 			if i > 0 {
 				p.buf.writeByte(' ')
 			}
@@ -100,7 +100,7 @@ func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
 		p.buf.writeByte(']')
 	case reflect.Struct:
 		p.buf.writeByte('{')
-		for i := 0; i < v.NumField(); i++ {
+		for i := 0; i < v.NumField(); i++ { //nolint:all //
 			if i > 0 {
 				p.buf.writeByte(' ')
 			}

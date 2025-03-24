@@ -133,7 +133,7 @@ func parseErrorFormat(format string, wrappedErrs *[]int, reordered *bool) string
 				// Found the end of the index
 				indexStr := format[start+1 : i]
 				index := 0
-				for j := 0; j < len(indexStr); j++ {
+				for j := range len(indexStr) {
 					if indexStr[j] >= '0' && indexStr[j] <= '9' {
 						index = index*10 + int(indexStr[j]-'0')
 					}
@@ -197,7 +197,7 @@ func (e *wrapError) Unwrap() error {
 	return e.err
 }
 
-type wrapErrors struct {
+type wrapErrors struct { //nolint:errname //
 	msg  string
 	errs []error
 }

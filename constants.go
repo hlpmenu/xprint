@@ -16,16 +16,16 @@ const (
 	panicString       = "(PANIC="
 	extraString       = "%!(EXTRA "
 
-	invReflectString = "<invalid reflect.Value>"
+	// invReflectString = "<invalid reflect.Value>"
 )
 
-// Digits for formatting
-const (
-	ldigits = "0123456789abcdef"
-	udigits = "0123456789ABCDEF"
-)
+// // Digits for formatting
+// const (
+// 	ldigits = "0123456789abcdef"
+// 	udigits = "0123456789ABCDEF"
+// )
 
-const (
-	signed   = true
-	unsigned = false
-)
+// const (
+// 	signed   = true
+// 	unsigned = false
+// )

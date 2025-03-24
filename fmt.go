@@ -14,7 +14,6 @@ type fmt struct {
 	fmtFlags
 	// intbuf is large enough to store %b of an int64 with a sign and
 	// avoids padding at the end of the struct on 32 bit architectures.
-	intbuf [68]byte
 }
 
 func (f *fmt) init(b *buffer) {

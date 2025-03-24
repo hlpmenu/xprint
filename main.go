@@ -30,17 +30,24 @@ func Sprintf(format string, args ...any) string {
 	return Printf(format, args...)
 }
 
-func Fprintf(w io.Writer, format string, args ...any) (n int, err error) {
+func Fprintf(w io.Writer, format string, args ...any) (int, error) {
 	// Fast path for no arguments - just write the format string as-is
 	if len(args) == 0 {
-		return w.Write([]byte(format))
+		n, err := w.Write([]byte(format))
+		if err != nil {
+			return n, errors.New("xprint: Fprint error, provided io.Writer errror: " + err.Error())
+		}
+		return n, nil
 	}
 
 	p := newPrinter()
 	p.printf(format, args)
-	n, err = w.Write(p.buf)
+	n, err := w.Write(p.buf)
 	p.free()
-	return
+	if err != nil {
+		return n, errors.New("xprint: " + err.Error())
+	}
+	return n, nil
 }
 
 func BigCocncat(s ...string) string {
