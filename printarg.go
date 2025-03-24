@@ -10,14 +10,7 @@ import (
 func (p *printer) printArg(arg any, verb rune) {
 	// Handle nil
 	if arg == nil {
-		switch verb {
-		case 'T', 'v':
-			p.buf.writeString(nilString)
-		default:
-			p.buf.writeString(percentBangString)
-			p.buf = append(p.buf, byte(verb))
-			p.buf.writeString(nilString)
-		}
+		p.buf.writeString(nilAngleString)
 		return
 	}
 
@@ -35,12 +28,19 @@ func (p *printer) printArg(arg any, verb rune) {
 	// Handle by type
 	switch v := arg.(type) {
 	case []byte:
-		p.buf = append(*p.fmt.buf, v...)
+		p.buf.writeByte('[')
+		for i, b := range v {
+			if i > 0 {
+				p.buf.writeByte(' ')
+			}
+			p.printInt(b, 10, 'd')
+		}
+		p.buf.writeByte(']')
 	case string:
 		p.buf = append(p.buf, v...)
 	case bool:
 		switch verb {
-		case 't':
+		case 't', 'v':
 			p.printBool(v)
 		case 's':
 			boolstr := percentBangString + "s(" + "bool" + "=" + strconv.FormatBool(v) + ")"
@@ -48,8 +48,20 @@ func (p *printer) printArg(arg any, verb rune) {
 		}
 	case int, int8, int16, int32, int64:
 		p.printInt(v, 10, verb)
-	case uint, uint8, uint16, uint32, uint64, uintptr:
+	case uint, uint8, uint16, uint32, uint64:
 		p.printInt(v, 10, verb)
+	case uintptr:
+		// Special handling for uintptr
+		if verb == 'v' {
+			// For %v, print in decimal
+			p.printInt(v, 10, 'd')
+		} else if verb == 'x' || verb == 'X' {
+			// For %x or %X, print in hex
+			p.printInt(v, 16, verb)
+		} else {
+			// For other verbs, use printInt with decimal base
+			p.printInt(v, 10, verb)
+		}
 	case float32:
 		// If precision is explicitly specified, use printFloat
 		// Otherwise use our specialized formatter with proper defaults
@@ -70,10 +82,16 @@ func (p *printer) printArg(arg any, verb rune) {
 	case complex64, complex128:
 		p.printComplex(v, verb)
 	default:
+		// Check for interface methods like error.Error() or Stringer.String()
 		if p.handleMethods(verb) {
 			return
 		}
-		p.value = reflect.ValueOf(p.arg)
+
+		// Store the argument in p.arg for reflection
+		p.arg = arg
+
+		// Use reflection for other types
+		p.value = reflect.ValueOf(arg)
 		p.printValue(p.value, verb, 0)
 	}
 }

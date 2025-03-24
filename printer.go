@@ -147,7 +147,7 @@ func (p *printer) handleMethods(verb rune) bool {
 	// Handle error values
 	if err, ok := p.arg.(error); ok {
 		defer p.catchPanic(p.arg, verb, "Error")
-		p.fmt.fmtString(err.Error())
+		p.buf.writeString(err.Error())
 		return true
 	}
 

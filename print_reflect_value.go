@@ -62,10 +62,18 @@ func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
 			return
 		}
 		if v.Type().Elem().Kind() == reflect.Uint8 {
-			p.fmt.fmtBytes(v.Bytes())
+			// Special case for []byte: output in decimal format
+			p.buf.writeByte('[')
+			for i := 0; i < v.Len(); i++ {
+				if i > 0 {
+					p.buf.writeByte(' ')
+				}
+				p.printInt(v.Index(i).Uint(), 10, 'd')
+			}
+			p.buf.writeByte(']')
 		} else {
 			p.buf.writeByte('[')
-			for i := range v.Len() { // Changed to simpler syntax, add test for uint8
+			for i := 0; i < v.Len(); i++ {
 				if i > 0 {
 					p.buf.writeByte(' ')
 				}

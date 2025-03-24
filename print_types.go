@@ -6,20 +6,93 @@ import (
 )
 
 func (p *printer) fmtPointer(value any, verb rune) {
-	var u uintptr
-	switch v := value.(type) {
-	case unsafe.Pointer:
-		u = uintptr(v)
-	case uintptr:
-		u = v
-	case reflect.Value:
-		u = v.Pointer()
-	default:
-		switch verb {
-		case 's', 'p', 'v':
-			// Do nothing
+	// For nil input, return immediately
+	if value == nil {
+		p.buf.writeString(nilAngleString)
+		return
+	}
+
+	v := reflect.ValueOf(value)
+
+	// Handle nil pointers
+	if v.Kind() == reflect.Pointer && v.IsNil() {
+		p.buf.writeString(nilAngleString)
+		return
+	}
+
+	// For 'p' verb, always use hexadecimal address
+	if verb == 'p' {
+		var u uintptr
+
+		switch x := value.(type) {
+		case unsafe.Pointer:
+			u = uintptr(x)
+		case uintptr:
+			u = x
+		case reflect.Value:
+			if x.Kind() == reflect.Pointer {
+				u = x.Pointer()
+			} else {
+				p.buf.writeString(nilAngleString)
+				return
+			}
 		default:
-			p.buf.writeString(nilParenString)
+			if v.Kind() == reflect.Pointer {
+				u = v.Pointer()
+			} else {
+				p.buf.writeString(nilAngleString)
+				return
+			}
+		}
+
+		p.buf.writeByte('0')
+		p.buf.writeByte('x')
+
+		// Convert uintptr to hex
+		const digits = "0123456789abcdef"
+		buf := make([]byte, 16)
+		i := len(buf)
+		for u >= 16 {
+			i--
+			buf[i] = digits[u&0xF]
+			u >>= 4
+		}
+		i--
+		buf[i] = digits[u]
+		p.buf.write(buf[i:])
+		return
+	}
+
+	// If verb is 'v', use special handling for common types
+	if verb == 'v' && v.Kind() == reflect.Pointer {
+		// If it's a pointer to a struct or a common type, dereference it
+		elem := v.Elem()
+		if elem.IsValid() {
+			p.printValue(elem, verb, 0)
+			return
+		}
+	}
+
+	// Default to hex pointer
+	var u uintptr
+
+	switch x := value.(type) {
+	case unsafe.Pointer:
+		u = uintptr(x)
+	case uintptr:
+		u = x
+	case reflect.Value:
+		if x.Kind() == reflect.Pointer {
+			u = x.Pointer()
+		} else {
+			p.buf.writeString(nilAngleString)
+			return
+		}
+	default:
+		if v.Kind() == reflect.Pointer {
+			u = v.Pointer()
+		} else {
+			p.buf.writeString(nilAngleString)
 			return
 		}
 	}
@@ -63,17 +136,27 @@ func (p *printer) printComplex(v any, verb rune) {
 	p.buf.writeByte('(')
 	switch v := v.(type) {
 	case complex64:
-		p.printFloat(real(v), verb)
+		// For the 'v' verb, use 'g' format for both real and imaginary parts
+		realVerb := verb
+		if verb == 'v' {
+			realVerb = 'g'
+		}
+		p.printFloat32(real(v), realVerb)
 		if imag(v) >= 0 {
 			p.buf.writeByte('+')
 		}
-		p.printFloat(imag(v), verb)
+		p.printFloat32(imag(v), realVerb)
 	case complex128:
-		p.printFloat(real(v), verb)
+		// For the 'v' verb, use 'g' format for both real and imaginary parts
+		realVerb := verb
+		if verb == 'v' {
+			realVerb = 'g'
+		}
+		p.printFloat64(real(v), realVerb)
 		if imag(v) >= 0 {
 			p.buf.writeByte('+')
 		}
-		p.printFloat(imag(v), verb)
+		p.printFloat64(imag(v), realVerb)
 	default:
 		p.buf.writeString(percentBangString)
 		p.buf.writeByte(byte(verb))

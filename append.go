@@ -1,6 +1,7 @@
 package xprint
 
 import (
+	fmtpkg "fmt"
 	"reflect"
 )
 
@@ -8,10 +9,6 @@ import (
 // the byte slice, and returns the updated slice.
 func Append(b []byte, items ...any) []byte {
 	// Fast path for no arguments - just return the input as-is
-	if len(items) == 0 {
-		return b
-	}
-
 	p := newPrinter()
 	p.doappend(items)
 	b = append(b, p.buf...)
@@ -23,9 +20,6 @@ func Append(b []byte, items ...any) []byte {
 // the byte slice, and returns the updated slice.
 func Appendf(b []byte, format string, items ...any) []byte {
 	// Fast path for no arguments - just return the input as-is
-	if len(items) == 0 {
-		return b
-	}
 
 	p := newPrinter()
 	p.printf(format, items)
@@ -47,4 +41,8 @@ func (p *printer) doappend(items []any) {
 		p.printArg(arg, 'v')
 		prevString = isString
 	}
+}
+
+func ref() {
+	fmtpkg.Appendf(nil, "")
 }
