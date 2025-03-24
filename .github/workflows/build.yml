@@ -31,6 +31,24 @@ jobs:
     - name: Go vet
       run: go vet .
 
+    - name: Build validation tools
+      run: cd validation && go build -o validation.bin .
+
+    - name: Run printf validation tests
+      run: cd validation && ./validation.bin validate-printf
+      # This will automatically fail the CI if the printf validation tests fail with exit code 1
+
+    - name: Run errorf validation tests
+      run: cd validation && ./validation.bin validate-errorf
+      # This will test the Errorf functionality
+
+    - name: Run benchmark comparison
+      run: cd validation && ./validation.bin newbench
+      # This runs the benchmarks but doesn't fail the build if the benchmarks are slower 
+
+
+
+
     - name: Build
       run: go build -v .
 
