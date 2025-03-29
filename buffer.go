@@ -41,7 +41,7 @@ func (b *buffer) writeNilArg(verb rune) {
 	*b = append(*b, percentBangString...)
 	*b = append(*b, byte(verb))
 	*b = append(*b, '(')
-	*b = append(*b, nilString...)
+	*b = append(*b, nilAngleString...)
 	*b = append(*b, ')')
 
 }

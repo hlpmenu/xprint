@@ -136,11 +136,12 @@ func (p *printer) printf(format string, args []any) {
 
 		p.argNum++
 
-		switch {
-		case p.arg == nil:
-			p.buf.writeNilArg(p.verb)
-			continue
-		}
+		// switch {
+		// case p.arg == nil:
+
+		// 	p.buf.writeNilArg(p.verb)
+		// 	continue
+		// }
 
 		if p.ArgIsString() && p.verb == 's' && p.verb != 'T' && !p.fmt.widPresent {
 			// Fast path: string value with no width formatting, use direct concatenation

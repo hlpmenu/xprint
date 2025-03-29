@@ -12,13 +12,14 @@ func (p *printer) printArg() {
 	if p.arg == nil {
 		switch p.verb {
 		case 'T', 'v':
+
 			p.buf.writeString(nilString)
 		default:
+
 			p.buf.writeNilArg(p.verb)
 		}
 		return
 	}
-
 	// Handle based on type and verb
 	switch p.verb {
 	case 'T':
@@ -30,6 +31,7 @@ func (p *printer) printArg() {
 	case 'p':
 		p.fmtPointer(reflect.ValueOf(p.arg), p.verb)
 	}
+
 	// Handle by type
 	switch v := p.arg.(type) {
 	case []byte:

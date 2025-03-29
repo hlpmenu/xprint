@@ -181,5 +181,5 @@ func (p *printer) handleMethods(verb rune) bool {
 func (p *printer) writeNilArg(verb rune) {
 	p.buf.writeString(percentBangString)
 	p.buf.writeRune(verb)
-	p.buf.writeString(nilParenString)
+	p.buf.writeString(nilAngleString)
 }
