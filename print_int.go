@@ -8,15 +8,15 @@ func (p *printer) printInt(v any, verb rune) {
 	var str string
 	switch v := v.(type) {
 	case int:
-		str = predefinedOrPrint(v, p.fmt.uintbase, verb)
+		str = p.printIntFast(v)
 	case int8:
-		str = predefinedOrPrint(v, p.fmt.uintbase, verb)
+		str = p.printInt8Fast(v)
 	case int16:
-		str = predefinedOrPrint(v, p.fmt.uintbase, verb)
+		str = p.printInt16Fast(v)
 	case int32:
-		str = predefinedOrPrint(v, p.fmt.uintbase, verb)
+		str = p.printInt32Fast(v)
 	case int64:
-		str = predefinedOrPrint(v, p.fmt.uintbase, verb)
+		str = p.printInt64Fast(v)
 	case uint:
 		str = strconv.FormatUint(uint64(v), p.fmt.uintbase)
 	case uint8:
@@ -40,6 +40,141 @@ func (p *printer) printInt(v any, verb rune) {
 		p.buf.writeStringToUpper(str)
 	case false:
 		p.buf.writeString(str)
+	}
+}
+
+func (p *printer) printIntFast(v int) string {
+	switch v {
+	case 0:
+		return "0"
+	case 1:
+		return "1"
+	case 2:
+		return "2"
+	case 3:
+		return "3"
+	case 4:
+		return "4"
+	case 5:
+		return "5"
+	case 6:
+		return "6"
+	case 7:
+		return "7"
+	case 8:
+		return "8"
+	case 9:
+		return "9"
+	default:
+		return strconv.FormatInt(int64(v), p.fmt.uintbase)
+	}
+}
+
+func (p *printer) printInt8Fast(v int8) string {
+	switch v {
+	case 0:
+		return "0"
+	case 1:
+		return "1"
+	case 2:
+		return "2"
+	case 3:
+		return "3"
+	case 4:
+		return "4"
+	case 5:
+		return "5"
+	case 6:
+		return "6"
+	case 7:
+		return "7"
+	case 8:
+		return "8"
+	case 9:
+		return "9"
+	default:
+		return strconv.FormatInt(int64(v), p.fmt.uintbase)
+	}
+}
+
+func (p *printer) printInt16Fast(v int16) string {
+	switch v {
+	case 0:
+		return "0"
+	case 1:
+		return "1"
+	case 2:
+		return "2"
+	case 3:
+		return "3"
+	case 4:
+		return "4"
+	case 5:
+		return "5"
+	case 6:
+		return "6"
+	case 7:
+		return "7"
+	case 8:
+		return "8"
+	case 9:
+		return "9"
+	default:
+		return strconv.FormatInt(int64(v), p.fmt.uintbase)
+	}
+}
+
+func (p *printer) printInt32Fast(v int32) string {
+	switch v {
+	case 0:
+		return "0"
+	case 1:
+		return "1"
+	case 2:
+		return "2"
+	case 3:
+		return "3"
+	case 4:
+		return "4"
+	case 5:
+		return "5"
+	case 6:
+		return "6"
+	case 7:
+		return "7"
+	case 8:
+		return "8"
+	case 9:
+		return "9"
+	default:
+		return strconv.FormatInt(int64(v), p.fmt.uintbase)
+	}
+}
+
+func (p *printer) printInt64Fast(v int64) string {
+	switch v {
+	case 0:
+		return "0"
+	case 1:
+		return "1"
+	case 2:
+		return "2"
+	case 3:
+		return "3"
+	case 4:
+		return "4"
+	case 5:
+		return "5"
+	case 6:
+		return "6"
+	case 7:
+		return "7"
+	case 8:
+		return "8"
+	case 9:
+		return "9"
+	default:
+		return strconv.FormatInt(v, p.fmt.uintbase)
 	}
 }
 
@@ -75,41 +210,3 @@ func predefinedOrPrint[T num](v T, base int, verb rune) string {
 	}
 	return str
 }
-
-// // intFromArg gets the argNumth element of a. On return, isInt reports whether the argument has integer type.
-// func intFromArg(a []any, argNum int) (num int, isInt bool, newArgNum int) {
-// 	newArgNum = argNum
-// 	if argNum < len(a) {
-// 		num, isInt = a[argNum].(int) // Almost always OK.
-// 		if !isInt {
-// 			// Work harder.
-// 			switch v := reflect.ValueOf(a[argNum]); v.Kind() {
-// 			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-// 				n := v.Int()
-// 				if int64(int(n)) == n {
-// 					num = int(n)
-// 					isInt = true
-// 				}
-// 			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-// 				n := v.Uint()
-// 				// if int64(n) >= 0 && uint64(int(n)) == n {
-// 				// 	num = int(n)
-// 				// 	isInt = true
-// 				// }
-// 				if n <= math.MaxInt {
-// 					num = int(n)
-// 					isInt = true
-// 				}
-
-// 			default:
-// 				// Already 0, false.
-// 			}
-// 		}
-// 		newArgNum = argNum + 1
-// 		if tooLarge(num) {
-// 			num = 0
-// 			isInt = false
-// 		}
-// 	}
-// 	return
-// }

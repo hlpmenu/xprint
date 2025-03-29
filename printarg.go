@@ -35,7 +35,7 @@ func (p *printer) printArg() {
 	// Handle by type
 	switch v := p.arg.(type) {
 	case []byte:
-		p.buf = append(*p.fmt.buf, v...)
+		p.buf = append(p.buf, v...)
 	case string:
 		if p.fmt.widPresent && p.verb == 's' {
 			width := p.fmt.wid - len(v)
@@ -69,10 +69,83 @@ func (p *printer) printArg() {
 			boolstr := percentBangString + "s(" + "bool" + "=" + strconv.FormatBool(v) + ")"
 			p.buf = append(p.buf, boolstr...)
 		}
-	case int, int8, int16, int32, int64:
-		p.printInt(v, p.verb)
-	case uint, uint8, uint16, uint32, uint64, uintptr:
-		p.printInt(v, p.verb)
+	case int:
+		str := p.printIntFast(v)
+		if p.fmt.toupper {
+			p.buf.writeStringToUpper(str)
+		} else {
+			p.buf.writeString(str)
+		}
+	case int8:
+		str := p.printInt8Fast(v)
+		if p.fmt.toupper {
+			p.buf.writeStringToUpper(str)
+		} else {
+			p.buf.writeString(str)
+		}
+	case int16:
+		str := p.printInt16Fast(v)
+		if p.fmt.toupper {
+			p.buf.writeStringToUpper(str)
+		} else {
+			p.buf.writeString(str)
+		}
+	case int32:
+		str := p.printInt32Fast(v)
+		if p.fmt.toupper {
+			p.buf.writeStringToUpper(str)
+		} else {
+			p.buf.writeString(str)
+		}
+	case int64:
+		str := p.printInt64Fast(v)
+		if p.fmt.toupper {
+			p.buf.writeStringToUpper(str)
+		} else {
+			p.buf.writeString(str)
+		}
+	case uint:
+		str := strconv.FormatUint(uint64(v), p.fmt.uintbase)
+		if p.fmt.toupper {
+			p.buf.writeStringToUpper(str)
+		} else {
+			p.buf.writeString(str)
+		}
+	case uint8:
+		str := strconv.FormatUint(uint64(v), p.fmt.uintbase)
+		if p.fmt.toupper {
+			p.buf.writeStringToUpper(str)
+		} else {
+			p.buf.writeString(str)
+		}
+	case uint16:
+		str := strconv.FormatUint(uint64(v), p.fmt.uintbase)
+		if p.fmt.toupper {
+			p.buf.writeStringToUpper(str)
+		} else {
+			p.buf.writeString(str)
+		}
+	case uint32:
+		str := strconv.FormatUint(uint64(v), p.fmt.uintbase)
+		if p.fmt.toupper {
+			p.buf.writeStringToUpper(str)
+		} else {
+			p.buf.writeString(str)
+		}
+	case uint64:
+		str := strconv.FormatUint(v, p.fmt.uintbase)
+		if p.fmt.toupper {
+			p.buf.writeStringToUpper(str)
+		} else {
+			p.buf.writeString(str)
+		}
+	case uintptr:
+		str := strconv.FormatUint(uint64(v), p.fmt.uintbase)
+		if p.fmt.toupper {
+			p.buf.writeStringToUpper(str)
+		} else {
+			p.buf.writeString(str)
+		}
 	case float32:
 		// If precision is explicitly specified, use printFloat
 		// Otherwise use our specialized formatter with proper defaults
