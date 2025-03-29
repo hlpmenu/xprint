@@ -1,7 +1,6 @@
 package xprint
 
 import (
-	"log"
 	"strconv"
 )
 
@@ -49,7 +48,6 @@ type num interface {
 }
 
 func predefinedOrPrint[T num](v T, base int, verb rune) string {
-	log.Printf("base: %d", base)
 	var str string
 	switch v {
 	case 0:

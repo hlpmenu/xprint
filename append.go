@@ -1,8 +1,6 @@
 package xprint
 
 import (
-	fmtpkg "fmt"
-	"log"
 	"reflect"
 )
 
@@ -23,7 +21,6 @@ func Appendf(b []byte, format string, items ...any) []byte {
 	// Fast path for no arguments - just return the input as-is
 	switch {
 	case len(items) == 0:
-		log.Printf("len(items) == 0")
 		return b
 	case len(items) == 1 && items[0] == nil:
 		b = append(b, nilAngleString...)
@@ -50,8 +47,4 @@ func (p *printer) doappend(items []any) {
 		p.printArg(arg, 'v')
 		prevString = isString
 	}
-}
-
-func ref() {
-	fmtpkg.Appendf(nil, "")
 }

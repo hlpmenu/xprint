@@ -1,13 +1,11 @@
 package xprint
 
 import (
-	"log"
 	"reflect"
 )
 
 // printValue is similar to printArg but starts with a reflect value, not an interface{} value.
 func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
-	log.Printf("value type: %v", v.Type())
 	// Handle nil
 	if !v.IsValid() {
 		p.buf.writeString(nilAngleString)

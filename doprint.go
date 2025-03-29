@@ -1,7 +1,6 @@
 package xprint
 
 import (
-	"log"
 	"reflect"
 )
 
@@ -12,7 +11,6 @@ func (p *printer) printf(format string, args []any) {
 	lenOfArgs := len(args)
 	i := 0
 	for i < end {
-		log.Printf("i: %d, end: %d", i, end)
 		lasti := i
 
 		for i < end && format[i] != '%' {
@@ -43,7 +41,6 @@ func (p *printer) printf(format string, args []any) {
 		// Handle flags
 		for i < end {
 			c++
-			log.Printf("c: %d", c)
 			switch format[i] {
 			case '#':
 				p.fmt.sharp = true
@@ -56,10 +53,8 @@ func (p *printer) printf(format string, args []any) {
 			case ' ':
 				p.fmt.space = true
 			default:
-				log.Printf("default")
 				goto flags_done
 			}
-			log.Printf("index++")
 			i++
 		}
 	flags_done:
@@ -69,10 +64,7 @@ func (p *printer) printf(format string, args []any) {
 			p.buf.writeString(missingString)
 			break
 		}
-		log.Printf("argnum: %d", p.argNum)
-		log.Printf(("len(args): %d"), len(args))
 		p.arg = args[p.argNum] //nolint:all //
-		log.Printf("arg: %v", p.arg)
 
 		if i < end && format[i] == '*' {
 			i++
@@ -157,7 +149,6 @@ func (p *printer) printf(format string, args []any) {
 			p.buf = append(p.buf, p.arg.([]byte)...) //nolint:all //
 			continue
 		}
-		log.Printf("verb switch")
 		p.fmt.uintbase = 10
 		p.fmt.toupper = false
 		switch verb {
@@ -174,7 +165,6 @@ func (p *printer) printf(format string, args []any) {
 		case 'd':
 			p.printArg(p.arg, verb)
 		case 'x':
-			log.Printf("x")
 			p.fmt.uintbase = 16
 			p.printArg(p.arg, verb)
 		case 'X':
@@ -206,7 +196,6 @@ func (p *printer) printf(format string, args []any) {
 		case 'p':
 			p.fmtPointer(reflect.ValueOf(p.arg), verb)
 		default:
-			log.Printf("default verb switch for val: %v", p.arg)
 			p.buf.writeString(percentBangString)
 			p.buf.writeRune(verb)
 			p.buf.writeString(noVerbString)
@@ -221,7 +210,7 @@ func Example(b []byte, a ...any) {
 	// b is []byte
 	_ = b
 
-	// a is either any.([]string) or []any.(string)
+	// a is either any.([]strings) or []any.(string)
 
 	var holds any
 
