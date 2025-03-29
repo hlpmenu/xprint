@@ -8,7 +8,7 @@ import (
 func (p *printer) print(args []any) {
 	var lastWasString bool
 	for i, arg := range args {
-		if i > 0 && !(lastWasString && isNumeric(arg)) {
+		if i > 0 && (!lastWasString || !printisNumeric(arg)) {
 			p.buf.writeByte(' ')
 		}
 
@@ -74,7 +74,7 @@ func (p *printer) print(args []any) {
 	}
 }
 
-func isNumeric(v any) bool {
+func printisNumeric(v any) bool {
 	switch v.(type) {
 	case int, int8, int16, int32, int64,
 		uint, uint8, uint16, uint32, uint64, uintptr,
