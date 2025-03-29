@@ -29,7 +29,8 @@ func Errorf(format string, a ...any) error {
 	// 2. Simple wrapped error: "%w" with an error argument
 	if len(a) == 1 {
 		if isSimpleFormat(format) {
-			if format == "%s" {
+			switch format {
+			case "%s":
 				// Simple string error without wrapping
 				switch arg := a[0].(type) {
 				case string:
@@ -39,7 +40,7 @@ func Errorf(format string, a ...any) error {
 				case error:
 					return errors.New(arg.Error())
 				}
-			} else if format == "%w" {
+			case "%w":
 				// Simple error wrapping
 				if err, ok := a[0].(error); ok {
 					return &wrapError{

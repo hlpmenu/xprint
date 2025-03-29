@@ -142,11 +142,11 @@ func (p *printer) printf(format string, args []any) {
 
 		if p.ArgIsString() && p.verb == 's' && p.verb != 'T' && !p.fmt.widPresent {
 			// Fast path: string value with no width formatting, use direct concatenation
-			p.buf = append(p.buf, p.arg.(string)...)
+			p.buf = append(p.buf, p.arg.(string)...) //nolint:forcetypeassert //
 			continue
 		} else if p.ArgIsBytes() && p.verb == 's' && p.verb != 'T' && !p.fmt.widPresent {
 			// Fast path: byte slice value with no width formatting, use direct concatenation
-			p.buf = append(p.buf, p.arg.([]byte)...)
+			p.buf = append(p.buf, p.arg.([]byte)...) //nolint:forcetypeassert //
 			continue
 		}
 		p.fmt.uintbase = 10
@@ -184,7 +184,7 @@ func (p *printer) printf(format string, args []any) {
 			p.printArg()
 		case 'q':
 			// use switch even tho single case for more oprimal type conv
-			switch v := p.arg.(type) {
+			switch v := p.arg.(type) { //nolint:all //
 			case string:
 				p.arg = `"` + v + `"`
 			}
@@ -204,34 +204,4 @@ func (p *printer) printf(format string, args []any) {
 			}
 		}
 	}
-}
-
-func Example(b []byte, a ...any) {
-	// b is []byte
-	_ = b
-
-	// a is either any.([]strings) or []any.(string)
-
-	var holds any
-
-	// if the compiler has casteed it as any.([]string),
-	// this work just fine
-	holds = a[0]
-	_ = holds
-
-	// if were a switch
-	for {
-		// but if compiler has casted it as a slice of interfaces,
-		// which seems to be almost random, this will panic.
-		// here a is type [][]any
-		holds = a[0]
-
-	}
-
-}
-
-func callexample() {
-	// type []string
-	input := []string{"hello", "world"}
-	Example([]byte{}, input)
 }

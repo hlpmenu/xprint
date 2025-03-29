@@ -237,7 +237,7 @@ func TestAppendInterface(t *testing.T) {
 }
 
 func TestAppendError(t *testing.T) {
-	err := fmt.Errorf("test error")
+	err := fmt.Errorf("test error") //nolint:all //
 
 	o := xprint.Append([]byte("Error: "), err)
 	fo := fmt.Append([]byte("Error: "), err)
@@ -496,7 +496,7 @@ func TestAppendfInterface(t *testing.T) {
 }
 
 func TestAppendfError(t *testing.T) {
-	err := fmt.Errorf("test error")
+	err := fmt.Errorf("test error") //nolint:all //
 
 	o := xprint.Appendf([]byte("Error: "), "%v", err)
 	fo := fmt.Appendf([]byte("Error: "), "%v", err)
