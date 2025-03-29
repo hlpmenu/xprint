@@ -1,6 +1,7 @@
 package xprint
 
 import (
+	"log"
 	"reflect"
 )
 
@@ -11,6 +12,7 @@ func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
 		p.buf.writeString(nilAngleString)
 		return
 	}
+	log.Printf("printValue: %v", v)
 
 	// Check for recursive pointer/interface values
 	if !p.recursing && (v.Kind() == reflect.Pointer || v.Kind() == reflect.Interface) {
@@ -66,28 +68,29 @@ func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
 		if v.Type().Elem().Kind() == reflect.Uint8 {
 			p.fmt.fmtBytes(v.Bytes())
 		} else {
+			log.Printf("slice start argNum: %d", p.argNum)
 			p.buf.writeByte('[')
-			for i := range v.Len() { // Changed to simpler syntax, add test for uint8
+			for i := range v.Len() {
 				if i > 0 {
 					p.buf.writeByte(' ')
 				}
 				p.printValue(v.Index(i), verb, prec)
-				if i < v.Len()-1 {
-					p.argNum++ // Increment after processing each element except the last one
+				log.Printf("index: %d, len: %d", i, v.Len())
+				if i == 0 { // Much simpler! For i=0,1: decrement, for i=2: don't
+					p.argNum-- // Hold for each element except the last one
 				}
 			}
+			p.argNum++
 			p.buf.writeByte(']')
 		}
 	case reflect.Array:
+		p.argNum-- // Hold argNum for the entire array
 		p.buf.writeByte('[')
 		for i := range v.Len() {
 			if i > 0 {
 				p.buf.writeByte(' ')
 			}
 			p.printValue(v.Index(i), verb, prec)
-			if i < v.Len()-1 {
-				p.argNum++ // Increment after processing each element except the last one
-			}
 		}
 		p.buf.writeByte(']')
 	case reflect.Map:
@@ -105,7 +108,7 @@ func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
 			p.buf.writeByte(':')
 			p.printValue(v.MapIndex(key), verb, prec)
 			if i < len(keys)-1 {
-				p.argNum-- // Decrement for each key-value pair except the last one
+				p.argNum-- // Hold for each key-value pair except the last one
 			}
 		}
 		p.buf.writeByte(']')
@@ -121,7 +124,7 @@ func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
 			}
 			p.printValue(v.Field(i), verb, prec)
 			if i < v.NumField()-1 {
-				p.argNum-- // Decrement for each field except the last one
+				p.argNum-- // Hold for each field except the last one
 			}
 		}
 		p.buf.writeByte('}')
@@ -141,7 +144,9 @@ func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
 	default:
 		// For other types, just use String()
 		if v.CanInterface() {
-			p.printArg(v.Interface(), verb)
+			p.arg = v.Interface()
+			p.verb = verb
+			p.printArg()
 		} else {
 			p.buf.writeString(v.String())
 		}

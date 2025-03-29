@@ -7,36 +7,35 @@ import (
 
 // printArg formats arg in the manner specified by the verb
 // and appends it to p.buf.
-func (p *printer) printArg(arg any, verb rune) {
+func (p *printer) printArg() {
 	// Handle nil
-	if arg == nil || p.arg == nil {
-		switch verb {
+	if p.arg == nil {
+		switch p.verb {
 		case 'T', 'v':
 			p.buf.writeString(nilString)
 		default:
-			p.buf.writeNilArg(verb)
-
+			p.buf.writeNilArg(p.verb)
 		}
 		return
 	}
 
 	// Handle based on type and verb
-	switch verb {
+	switch p.verb {
 	case 'T':
-		p.printReflectType(arg)
+		p.printReflectType(p.arg)
 		return
 	case 't':
-		p.printBool(arg)
+		p.printBool(p.arg)
 		return
 	case 'p':
-		p.fmtPointer(reflect.ValueOf(arg), verb)
+		p.fmtPointer(reflect.ValueOf(p.arg), p.verb)
 	}
 	// Handle by type
-	switch v := arg.(type) {
+	switch v := p.arg.(type) {
 	case []byte:
 		p.buf = append(*p.fmt.buf, v...)
 	case string:
-		if p.fmt.widPresent && verb == 's' {
+		if p.fmt.widPresent && p.verb == 's' {
 			width := p.fmt.wid - len(v)
 			if width > 0 {
 				// Left padding (right-aligned)
@@ -61,7 +60,7 @@ func (p *printer) printArg(arg any, verb rune) {
 			p.buf = append(p.buf, v...)
 		}
 	case bool:
-		switch verb {
+		switch p.verb {
 		case 't':
 			p.printBool(v)
 		case 's':
@@ -69,37 +68,33 @@ func (p *printer) printArg(arg any, verb rune) {
 			p.buf = append(p.buf, boolstr...)
 		}
 	case int, int8, int16, int32, int64:
-		p.printInt(v, verb)
+		p.printInt(v, p.verb)
 	case uint, uint8, uint16, uint32, uint64, uintptr:
-		p.printInt(v, verb)
+		p.printInt(v, p.verb)
 	case float32:
 		// If precision is explicitly specified, use printFloat
 		// Otherwise use our specialized formatter with proper defaults
 		if p.fmt.precPresent {
-			p.printFloat(v, verb)
+			p.printFloat(v, p.verb)
 		} else {
-			p.printFloat32(v, verb)
+			p.printFloat32(v, p.verb)
 		}
 	case float64:
-
 		// If precision is explicitly specified, use printFloat
 		// Otherwise use our specialized formatter with proper defaults
 		if p.fmt.precPresent {
-			p.printFloat(v, verb)
+			p.printFloat(v, p.verb)
 		} else {
-			p.printFloat64(v, verb)
+			p.printFloat64(v, p.verb)
 		}
 	case complex64, complex128:
-		p.printComplex(v, verb)
+		p.printComplex(v, p.verb)
 	default:
-		if p.handleMethods(verb) {
-
+		if p.handleMethods(p.verb) {
 			return
 		}
 
 		p.value = reflect.ValueOf(p.arg)
-
-		p.printValue(p.value, verb, 0)
+		p.printValue(p.value, p.verb, 0)
 	}
-
 }

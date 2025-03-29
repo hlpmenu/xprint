@@ -106,6 +106,19 @@ func TestIsolatedAppendf(t *testing.T) {
 	}
 }
 
+func TestSimpleSliceAppendf(t *testing.T) {
+	testItems := []string{"hello", "world"}
+	format := "Slice: %s"
+	var buf []byte
+	o := xprint.Appendf(buf, format, testItems)
+	fo := fmt.Appendf(buf, format, testItems)
+	if !bytes.Equal(o, fo) {
+		t.Errorf("Expected %s, got %s", fo, o)
+	} else {
+		t.Logf("fmt: %s, matches xprint: %s", fo, o)
+	}
+}
+
 func TestArgMismatchHypotesis(t *testing.T) {
 	testItems := []string{"hello", "world"}
 	format := "Message part 1: %s! and part 2: %v"

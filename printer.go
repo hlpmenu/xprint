@@ -29,6 +29,8 @@ type printer struct {
 	wrappedErrs []int //nolint:unused //
 	// argNum tracks the current argument number being processed
 	argNum int
+	// verb is the current format verb being processed
+	verb rune
 }
 
 // func (p *printer) argAsString() string {
@@ -140,7 +142,9 @@ func (p *printer) catchPanic(arg any, verb rune, method string) {
 		p.buf.writeString("(PANIC=")
 		p.buf.writeString(method)
 		p.buf.writeString(" method: ")
-		p.printArg(err, 'v')
+		p.arg = err
+		p.verb = 'v'
+		p.printArg()
 		p.buf.writeByte(')')
 	}
 }
@@ -172,4 +176,10 @@ func (p *printer) handleMethods(verb rune) bool {
 	}
 
 	return false
+}
+
+func (p *printer) writeNilArg(verb rune) {
+	p.buf.writeString(percentBangString)
+	p.buf.writeRune(verb)
+	p.buf.writeString(nilParenString)
 }

@@ -1,6 +1,7 @@
 package xprint
 
 import (
+	"log"
 	"reflect"
 )
 
@@ -58,13 +59,15 @@ func (p *printer) printf(format string, args []any) {
 			i++
 		}
 	flags_done:
-		if (i >= end) && p.argNum >= len(args) {
+		log.Print("flags done loop iteration")
+		if i >= end || p.argNum >= len(args) {
 			p.buf.writeString(percentBangString)
 			p.buf.writeRune(rune(format[i]))
 			p.buf.writeString(missingString)
 			break
 		}
-		p.arg = args[p.argNum] //nolint:all //
+		log.Printf("argnum: %d", p.argNum)
+		p.arg = args[p.argNum]
 
 		if i < end && format[i] == '*' {
 			i++
@@ -116,12 +119,14 @@ func (p *printer) printf(format string, args []any) {
 		if i >= end {
 			p.buf.writeString(noVerbString)
 			break
-		} else if i+1 == end {
-			lastIteration = true
 		}
 
-		verb := rune(format[i])
+		p.verb = rune(format[i])
 		i++
+
+		if i == end {
+			lastIteration = true
+		}
 
 		// Handle argument
 		if p.argNum >= lenOfArgs {
@@ -132,72 +137,69 @@ func (p *printer) printf(format string, args []any) {
 		p.argNum++
 
 		switch {
-		case p.arg == nil && verb != 'T':
-			p.buf.writeString(nilAngleString)
-			continue
 		case p.arg == nil:
-			p.buf.writeNilArg(verb)
+			p.buf.writeNilArg(p.verb)
 			continue
 		}
 
-		if p.ArgIsString() && verb == 's' && verb != 'T' && !p.fmt.widPresent {
+		if p.ArgIsString() && p.verb == 's' && p.verb != 'T' && !p.fmt.widPresent {
 			// Fast path: string value with no width formatting, use direct concatenation
-			p.buf = append(p.buf, p.arg.(string)...) //nolint:all //
+			p.buf = append(p.buf, p.arg.(string)...)
 			continue
-		} else if p.ArgIsBytes() && verb == 's' && verb != 'T' && !p.fmt.widPresent {
+		} else if p.ArgIsBytes() && p.verb == 's' && p.verb != 'T' && !p.fmt.widPresent {
 			// Fast path: byte slice value with no width formatting, use direct concatenation
-			p.buf = append(p.buf, p.arg.([]byte)...) //nolint:all //
+			p.buf = append(p.buf, p.arg.([]byte)...)
 			continue
 		}
 		p.fmt.uintbase = 10
 		p.fmt.toupper = false
-		switch verb {
+		switch p.verb {
 		case 'v':
 			p.fmt.plusV = p.fmt.plus
 			p.fmt.sharpV = p.fmt.sharp
-			p.printArg(p.arg, verb)
+			p.printArg()
 		case 'o':
 			p.fmt.uintbase = 8
-			p.printArg(p.arg, verb)
+			p.printArg()
 		case 'O':
 			p.fmt.uintbase = 8
 			p.fmt.toupper = true
 		case 'd':
-			p.printArg(p.arg, verb)
+			p.printArg()
 		case 'x':
 			p.fmt.uintbase = 16
-			p.printArg(p.arg, verb)
+			p.printArg()
 		case 'X':
 			p.fmt.uintbase = 16
 			p.fmt.toupper = true
-			p.printArg(p.arg, verb)
+			p.printArg()
 		case 'b':
 			p.fmt.uintbase = 2
-			p.printArg(p.arg, verb)
+			p.printArg()
 		case 'B':
 			p.fmt.uintbase = 2
 			p.fmt.toupper = true
-			p.printArg(p.arg, verb)
+			p.printArg()
 		case 'f', 'F', 'g', 'G', 'e', 'E':
-			p.printArg(p.arg, verb)
+			p.printArg()
 		case 's': // 's'
-			p.printArg(p.arg, verb)
+			p.printArg()
 		case 'q':
 			// use switch even tho single case for more oprimal type conv
-			switch v := p.arg.(type) { //nolint:all //
+			switch v := p.arg.(type) {
 			case string:
 				p.arg = `"` + v + `"`
 			}
-			p.printArg(p.arg, verb)
+			p.printArg()
 		case 't':
 			p.printBool(p.arg)
 		case 'T':
 			p.printReflectType(p.arg)
 		case 'p':
-			p.fmtPointer(reflect.ValueOf(p.arg), verb)
+			p.fmtPointer(reflect.ValueOf(p.arg), p.verb)
 		default:
 			p.buf.writeString(percentBangString)
-			p.buf.writeRune(verb)
+			p.buf.writeRune(p.verb)
 			p.buf.writeString(noVerbString)
 			if lastIteration {
 				break
