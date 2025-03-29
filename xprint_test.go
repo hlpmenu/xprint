@@ -1,6 +1,7 @@
 package xprint_test
 
 import (
+	"bytes"
 	"fmt"
 	"testing"
 
@@ -90,4 +91,59 @@ func ComparePrintfAppend(t *testing.T) {
 		})
 	}
 
+}
+
+func TestIsolatedAppendf(t *testing.T) {
+	testItems := []string{"hello", "world"}
+	format := "Message part 1: %s! and part 2: %v"
+	var buf []byte
+	o := xprint.Appendf(buf, format, testItems)
+	fo := fmt.Appendf(buf, format, testItems)
+	if !bytes.Equal(o, fo) {
+		t.Errorf("Expected %s, got %s", fo, o)
+	} else {
+		t.Logf("fmt: %s, matches xprint: %s", fo, o)
+	}
+}
+
+func TestArgMismatchHypotesis(t *testing.T) {
+	testItems := []string{"hello", "world"}
+	format := "Message part 1: %s! and part 2: %v"
+	o := xprint.Printf(format, testItems)
+	fo := fmt.Sprintf(format, testItems)
+	if o != fo {
+		t.Errorf("Expected %s, got %s", fo, o)
+	} else {
+		t.Logf("fmt: %s, matches xprint: %s", fo, o)
+	}
+}
+
+// Test nil formatting
+func TestNilFormatting(t *testing.T) {
+	TestAppendNil(t)
+	o := xprint.Printf("Nil: %s", nil)
+	fo := fmt.Sprintf("Nil: %s", nil)
+	if o != fo {
+		t.Errorf("Expected %s, got %s", fo, o)
+	}
+}
+
+func TestPrintfComplex(t *testing.T) {
+	testCases := []struct {
+		name string
+		arg  any
+	}{
+		{"complex64", complex64(complex(1, 2))},
+		{"complex128", complex128(complex(3, 4))},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			o := xprint.Printf("Complex: %v", tc.arg)
+			fo := fmt.Sprintf("Complex: %v", tc.arg)
+			if o != fo {
+				t.Errorf("Expected %s, got %s", fo, o)
+			}
+		})
+	}
 }

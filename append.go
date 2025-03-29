@@ -2,6 +2,7 @@ package xprint
 
 import (
 	fmtpkg "fmt"
+	"log"
 	"reflect"
 )
 
@@ -20,9 +21,17 @@ func Append(b []byte, items ...any) []byte {
 // the byte slice, and returns the updated slice.
 func Appendf(b []byte, format string, items ...any) []byte {
 	// Fast path for no arguments - just return the input as-is
-
+	switch {
+	case len(items) == 0:
+		log.Printf("len(items) == 0")
+		return b
+	case len(items) == 1 && items[0] == nil:
+		b = append(b, nilAngleString...)
+		return b
+	}
 	p := newPrinter()
 	p.printf(format, items)
+
 	b = append(b, p.buf...)
 	p.free()
 	return b

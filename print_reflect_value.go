@@ -1,9 +1,13 @@
 package xprint
 
-import "reflect"
+import (
+	"log"
+	"reflect"
+)
 
 // printValue is similar to printArg but starts with a reflect value, not an interface{} value.
 func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
+	log.Printf("value type: %v", v.Type())
 	// Handle nil
 	if !v.IsValid() {
 		p.buf.writeString(nilAngleString)
@@ -49,9 +53,9 @@ func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
 	case reflect.Bool:
 		p.fmt.fmtBool(v.Bool())
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p.printInt(v.Int(), 10, verb)
+		p.printInt(v.Int(), verb)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		p.printInt(v.Uint(), 10, verb)
+		p.printInt(v.Uint(), verb)
 	case reflect.Float32, reflect.Float64:
 		p.printFloat(v, verb)
 	case reflect.String:
@@ -62,22 +66,17 @@ func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
 			return
 		}
 		if v.Type().Elem().Kind() == reflect.Uint8 {
-			// Special case for []byte: output in decimal format
-			p.buf.writeByte('[')
-			for i := 0; i < v.Len(); i++ {
-				if i > 0 {
-					p.buf.writeByte(' ')
-				}
-				p.printInt(v.Index(i).Uint(), 10, 'd')
-			}
-			p.buf.writeByte(']')
+			p.fmt.fmtBytes(v.Bytes())
 		} else {
 			p.buf.writeByte('[')
-			for i := 0; i < v.Len(); i++ {
+			for i := range v.Len() { // Changed to simpler syntax, add test for uint8
 				if i > 0 {
 					p.buf.writeByte(' ')
 				}
 				p.printValue(v.Index(i), verb, prec)
+				if i < v.Len()-1 {
+					p.argNum++ // Increment after processing each element except the last one
+				}
 			}
 			p.buf.writeByte(']')
 		}
@@ -88,6 +87,9 @@ func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
 				p.buf.writeByte(' ')
 			}
 			p.printValue(v.Index(i), verb, prec)
+			if i < v.Len()-1 {
+				p.argNum++ // Increment after processing each element except the last one
+			}
 		}
 		p.buf.writeByte(']')
 	case reflect.Map:
@@ -104,6 +106,9 @@ func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
 			p.printValue(key, verb, prec)
 			p.buf.writeByte(':')
 			p.printValue(v.MapIndex(key), verb, prec)
+			if i < len(keys)-1 {
+				p.argNum-- // Decrement for each key-value pair except the last one
+			}
 		}
 		p.buf.writeByte(']')
 	case reflect.Struct:
@@ -117,6 +122,9 @@ func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
 				p.buf.writeByte(':')
 			}
 			p.printValue(v.Field(i), verb, prec)
+			if i < v.NumField()-1 {
+				p.argNum-- // Decrement for each field except the last one
+			}
 		}
 		p.buf.writeByte('}')
 	case reflect.Pointer:

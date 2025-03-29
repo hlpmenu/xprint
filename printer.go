@@ -27,6 +27,8 @@ type printer struct {
 	wrapErrs bool //nolint:unused //
 	// wrappedErrs records the targets of the %w verb.
 	wrappedErrs []int //nolint:unused //
+	// argNum tracks the current argument number being processed
+	argNum int
 }
 
 // func (p *printer) argAsString() string {
@@ -147,7 +149,7 @@ func (p *printer) handleMethods(verb rune) bool {
 	// Handle error values
 	if err, ok := p.arg.(error); ok {
 		defer p.catchPanic(p.arg, verb, "Error")
-		p.buf.writeString(err.Error())
+		p.fmt.fmtString(err.Error())
 		return true
 	}
 

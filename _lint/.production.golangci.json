@@ -1,40 +1,65 @@
 {
-    "run": {
-        "concurrency": 4,
-        "timeout": "5m"
-    },
-    "output": {
-        "formats": [
-            {
-                "format": "colored-line-number"
-            }
-        ]
-    },
-    "linters": {
-        "disable-all": true,
-        "enable": [
-            "staticcheck",
-            "gosec",
-            "errcheck",
-            "errorlint",
-            "bodyclose",
-            "rowserrcheck",
-            "sqlclosecheck",
-            "prealloc"
-        ]
-    },
-    "linters-settings": {
-        "errcheck": {
-            "check-type-assertions": true,
-            "check-blank": true,
-            "exclude-functions": [
-                "(net/http.ResponseWriter).Write"
+    "formatters": {
+        "exclusions": {
+            "generated": "lax",
+            "paths": [
+                "third_party$",
+                "builtin$",
+                "examples$"
             ]
         }
     },
-    "issues": {
-        "exclude": [
-            "jsonres"
-        ]
-    }
+    "linters": {
+        "default": "none",
+        "enable": [
+            "bodyclose",
+            "errcheck",
+            "errorlint",
+            "gosec",
+            "prealloc",
+            "rowserrcheck",
+            "sqlclosecheck",
+            "staticcheck"
+        ],
+        "exclusions": {
+            "generated": "lax",
+            "paths": [
+                "third_party$",
+                "builtin$",
+                "examples$"
+            ],
+            "presets": [
+                "comments",
+                "common-false-positives",
+                "legacy",
+                "std-error-handling"
+            ],
+            "rules": [
+                {
+                    "path": "(.+)\\.go$",
+                    "text": "jsonres"
+                }
+            ]
+        },
+        "settings": {
+            "errcheck": {
+                "check-blank": true,
+                "check-type-assertions": true,
+                "exclude-functions": [
+                    "(net/http.ResponseWriter).Write"
+                ]
+            }
+        }
+    },
+    "output": {
+        "formats": {
+            "text": {
+                "path": "stdout"
+            }
+        }
+    },
+    "run": {
+        "concurrency": 4
+    },
+    "version": "2"
 }

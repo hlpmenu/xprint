@@ -9,41 +9,40 @@
             ]
         }
     },
-    "run": {
-        "allow-parallel-runners": true,
-        "concurrency": 4,
-        "go": "1.24.1"
+    "issues": {
+        "max-issues-per-linter": 0,
+        "max-same-issues": 0
     },
-    "version": "2",
     "linters": {
-
         "enable": [
             "bodyclose",
+            "contextcheck",
+            "cyclop",
             "errname",
+            "errorlint",
+            "exhaustive",
             "forcetypeassert",
             "gochecknoinits",
+            "gocognit",
             "goconst",
             "gocritic",
             "gosec",
-            "iface",
             "intrange",
             "ireturn",
             "makezero",
             "mirror",
             "misspell",
             "mnd",
-            "nilnesserr",
+            "nestif",
             "nilnil",
-            "nonamedreturns",
-            "nosprintfhostport",
+            "paralleltest",
             "perfsprint",
             "prealloc",
             "predeclared",
             "revive",
-            "testpackage",
             "unconvert",
-            "wastedassign",
-            "wrapcheck"
+            "unparam",
+            "wastedassign"
         ],
         "exclusions": {
             "generated": "lax",
@@ -73,10 +72,20 @@
                 {
                     "path": "(.+)\\.go$",
                     "text": "should omit type .* from declaration of var"
+                },
+                {
+                    "linters": [
+                        "cyclop"
+                    ],
+                    "path": "(.+)_test\\.go"
                 }
             ]
         },
         "settings": {
+            "cyclop": {
+                "max-complexity": 15,
+                "package-average": 10
+            },
             "errcheck": {
                 "exclude-functions": [
                     "(github.com/gin-gonic/gin.ResponseWriter).Write",
@@ -84,10 +93,19 @@
                     "jsonres.Serve.*"
                 ]
             },
+            "errorlint": {
+                "asserts": true,
+                "comparison": true,
+                "errorf": true
+            },
+            "exhaustive": {
+                "default-signifies-exhaustive": true
+            },
+            "gocognit": {
+                "min-complexity": 20
+            },
             "gocritic": {
                 "enabled-checks": [
-                    "nilValReturn",
-                    "returnAfterHttpError",
                     "sliceClear",
                     "unnecessaryDefer"
                 ]
@@ -171,7 +189,6 @@
                     "32",
                     "64",
                     "128",
-                    "255",
                     "256",
                     "512",
                     "1024",
@@ -223,15 +240,15 @@
                     "500",
                     "503",
                     "0644",
-                    "0666",
                     "0755",
+                    "0666",
                     "0777",
                     "0600",
-                    "0400",
-                    "1e3",
-                    "1e6",
-                    "1e9"
+                    "0400"
                 ]
+            },
+            "nestif": {
+                "min-complexity": 5
             },
             "perfsprint": {
                 "bool-format": true,
@@ -245,26 +262,17 @@
                 "strconcat": true,
                 "string-format": true
             },
-            "revive": {
-                "rules": [
-                    {
-                        "arguments": [
-                            [
-                                "JSON",
-                                "ID",
-                                "URL",
-                                "API",
-                                "UUID",
-                                "UI",
-                                "UID"
-                            ]
-                        ],
-                        "disabled": false,
-                        "name": "var-naming"
-                    }
+            "staticcheck": {
+                "checks": [
+                    "all"
                 ]
             }
         }
-    }
-
+    },
+    "run": {
+        "allow-parallel-runners": true,
+        "concurrency": 4,
+        "go": "1.24.0"
+    },
+    "version": "2"
 }

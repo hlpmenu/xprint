@@ -6,6 +6,8 @@ type fmtFlags struct {
 	minus, plus, sharp, space, zero bool
 	plusV, sharpV                   bool
 	wid, prec                       int
+	uintbase                        int
+	toupper                         bool
 }
 
 // fmt holds the formatting state

@@ -9,8 +9,14 @@ import (
 // and appends it to p.buf.
 func (p *printer) printArg(arg any, verb rune) {
 	// Handle nil
-	if arg == nil {
-		p.buf.writeString(nilAngleString)
+	if arg == nil || p.arg == nil {
+		switch verb {
+		case 'T', 'v':
+			p.buf.writeString(nilString)
+		default:
+			p.buf.writeNilArg(verb)
+
+		}
 		return
 	}
 
@@ -28,40 +34,44 @@ func (p *printer) printArg(arg any, verb rune) {
 	// Handle by type
 	switch v := arg.(type) {
 	case []byte:
-		p.buf.writeByte('[')
-		for i, b := range v {
-			if i > 0 {
-				p.buf.writeByte(' ')
-			}
-			p.printInt(b, 10, 'd')
-		}
-		p.buf.writeByte(']')
+		p.buf = append(*p.fmt.buf, v...)
 	case string:
-		p.buf = append(p.buf, v...)
+		if p.fmt.widPresent && verb == 's' {
+			width := p.fmt.wid - len(v)
+			if width > 0 {
+				// Left padding (right-aligned)
+				if !p.fmt.minus {
+					for i := 0; i < width; i++ {
+						p.buf.writeByte(' ')
+					}
+				}
+				// Write the string
+				p.buf.writeString(v)
+				// Right padding (left-aligned)
+				if p.fmt.minus {
+					for i := 0; i < width; i++ {
+						p.buf.writeByte(' ')
+					}
+				}
+			} else {
+				// Width is less than string length, just write string
+				p.buf.writeString(v)
+			}
+		} else {
+			p.buf = append(p.buf, v...)
+		}
 	case bool:
 		switch verb {
-		case 't', 'v':
+		case 't':
 			p.printBool(v)
 		case 's':
 			boolstr := percentBangString + "s(" + "bool" + "=" + strconv.FormatBool(v) + ")"
 			p.buf = append(p.buf, boolstr...)
 		}
 	case int, int8, int16, int32, int64:
-		p.printInt(v, 10, verb)
-	case uint, uint8, uint16, uint32, uint64:
-		p.printInt(v, 10, verb)
-	case uintptr:
-		// Special handling for uintptr
-		if verb == 'v' {
-			// For %v, print in decimal
-			p.printInt(v, 10, 'd')
-		} else if verb == 'x' || verb == 'X' {
-			// For %x or %X, print in hex
-			p.printInt(v, 16, verb)
-		} else {
-			// For other verbs, use printInt with decimal base
-			p.printInt(v, 10, verb)
-		}
+		p.printInt(v, verb)
+	case uint, uint8, uint16, uint32, uint64, uintptr:
+		p.printInt(v, verb)
 	case float32:
 		// If precision is explicitly specified, use printFloat
 		// Otherwise use our specialized formatter with proper defaults
@@ -82,16 +92,14 @@ func (p *printer) printArg(arg any, verb rune) {
 	case complex64, complex128:
 		p.printComplex(v, verb)
 	default:
-		// Check for interface methods like error.Error() or Stringer.String()
 		if p.handleMethods(verb) {
+
 			return
 		}
 
-		// Store the argument in p.arg for reflection
-		p.arg = arg
+		p.value = reflect.ValueOf(p.arg)
 
-		// Use reflection for other types
-		p.value = reflect.ValueOf(arg)
 		p.printValue(p.value, verb, 0)
 	}
+
 }

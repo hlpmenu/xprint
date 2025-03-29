@@ -1,40 +1,47 @@
 package xprint
 
 import (
+	"log"
 	"strconv"
 )
 
-func (p *printer) printInt(v any, base int, verb rune) {
+func (p *printer) printInt(v any, verb rune) {
 	var str string
 	switch v := v.(type) {
 	case int:
-		str = predefinedOrPrint(v, base, verb)
+		str = predefinedOrPrint(v, p.fmt.uintbase, verb)
 	case int8:
-		str = predefinedOrPrint(v, base, verb)
+		str = predefinedOrPrint(v, p.fmt.uintbase, verb)
 	case int16:
-		str = predefinedOrPrint(v, base, verb)
+		str = predefinedOrPrint(v, p.fmt.uintbase, verb)
 	case int32:
-		str = predefinedOrPrint(v, base, verb)
+		str = predefinedOrPrint(v, p.fmt.uintbase, verb)
 	case int64:
-		str = predefinedOrPrint(v, base, verb)
-
+		str = predefinedOrPrint(v, p.fmt.uintbase, verb)
 	case uint:
-		str = strconv.FormatUint(uint64(v), base)
+		str = strconv.FormatUint(uint64(v), p.fmt.uintbase)
 	case uint8:
-		str = strconv.FormatUint(uint64(v), base)
+		str = strconv.FormatUint(uint64(v), p.fmt.uintbase)
 	case uint16:
-		str = strconv.FormatUint(uint64(v), base)
+		str = strconv.FormatUint(uint64(v), p.fmt.uintbase)
 	case uint32:
-		str = strconv.FormatUint(uint64(v), base)
+		str = strconv.FormatUint(uint64(v), p.fmt.uintbase)
 	case uint64:
-		str = strconv.FormatUint(v, base)
+		str = strconv.FormatUint(v, p.fmt.uintbase)
+	case uintptr:
+		str = strconv.FormatUint(uint64(v), p.fmt.uintbase)
 	default:
 		p.buf.writeString(percentBangString)
 		p.buf.writeByte(byte(verb))
 		p.buf.writeString(badVerbString)
 		return
 	}
-	p.buf.writeString(str)
+	switch p.fmt.toupper {
+	case true:
+		p.buf.writeStringToUpper(str)
+	case false:
+		p.buf.writeString(str)
+	}
 }
 
 type num interface {
@@ -42,6 +49,7 @@ type num interface {
 }
 
 func predefinedOrPrint[T num](v T, base int, verb rune) string {
+	log.Printf("base: %d", base)
 	var str string
 	switch v {
 	case 0:

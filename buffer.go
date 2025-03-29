@@ -1,6 +1,9 @@
 package xprint
 
-import "unicode/utf8"
+import (
+	"strings"
+	"unicode/utf8"
+)
 
 // buffer is a simple []byte buffer for building strings.
 type buffer []byte
@@ -19,6 +22,10 @@ func (b *buffer) write(p []byte) {
 func (b *buffer) writeString(s string) {
 	*b = append(*b, s...)
 }
+func (b *buffer) writeStringToUpper(s string) {
+	*b = append(*b, strings.ToUpper(s)...)
+}
+
 func (b *buffer) writeByte(c byte) {
 	*b = append(*b, c)
 }
@@ -28,4 +35,13 @@ func (b *buffer) writeRune(r rune) {
 }
 func BtoMB(b int) int {
 	return b / 1024 / 1024
+}
+
+func (b *buffer) writeNilArg(verb rune) {
+	*b = append(*b, percentBangString...)
+	*b = append(*b, byte(verb))
+	*b = append(*b, '(')
+	*b = append(*b, nilString...)
+	*b = append(*b, ')')
+
 }
