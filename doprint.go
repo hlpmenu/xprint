@@ -1,7 +1,6 @@
 package xprint
 
 import (
-	"log"
 	"reflect"
 )
 
@@ -59,14 +58,12 @@ func (p *printer) printf(format string, args []any) {
 			i++
 		}
 	flags_done:
-		log.Print("flags done loop iteration")
 		if i >= end || p.argNum >= len(args) {
 			p.buf.writeString(percentBangString)
 			p.buf.writeRune(rune(format[i]))
 			p.buf.writeString(missingString)
 			break
 		}
-		log.Printf("argnum: %d", p.argNum)
 		p.arg = args[p.argNum]
 
 		if i < end && format[i] == '*' {

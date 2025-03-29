@@ -1,7 +1,6 @@
 package xprint
 
 import (
-	"log"
 	"reflect"
 )
 
@@ -12,7 +11,6 @@ func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
 		p.buf.writeString(nilAngleString)
 		return
 	}
-	log.Printf("printValue: %v", v)
 
 	// Check for recursive pointer/interface values
 	if !p.recursing && (v.Kind() == reflect.Pointer || v.Kind() == reflect.Interface) {
@@ -68,14 +66,12 @@ func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
 		if v.Type().Elem().Kind() == reflect.Uint8 {
 			p.fmt.fmtBytes(v.Bytes())
 		} else {
-			log.Printf("slice start argNum: %d", p.argNum)
 			p.buf.writeByte('[')
 			for i := range v.Len() {
 				if i > 0 {
 					p.buf.writeByte(' ')
 				}
 				p.printValue(v.Index(i), verb, prec)
-				log.Printf("index: %d, len: %d", i, v.Len())
 				if i == 0 { // Much simpler! For i=0,1: decrement, for i=2: don't
 					p.argNum-- // Hold for each element except the last one
 				}

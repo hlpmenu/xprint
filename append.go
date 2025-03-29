@@ -1,11 +1,15 @@
 package xprint
 
+import (
+	"strings"
+)
+
 // Append formats using the default formats for its operands, appends the result to
 // the byte slice, and returns the updated slice.
 func Append(b []byte, items ...any) []byte {
 	// Fast path for no arguments - just return the input as-is
 	p := newPrinter()
-	//p.doappend(items)
+	p.doappend(items)
 	b = append(b, p.buf...)
 	p.free()
 	return b
@@ -31,16 +35,19 @@ func Appendf(b []byte, format string, items ...any) []byte {
 }
 
 // doappend formats the arguments using their default formats (%v verb)
-// // and places them into p.buf with appropriate spacing.
-// func (p *printer) doappend(items []any) {
-// 	prevString := false
-// 	for argNum, arg := range items {
-// 		isString := arg != nil && reflect.TypeOf(arg).Kind() == reflect.String
-// 		// Add a space between two non-string arguments
-// 		if argNum > 0 && !isString && !prevString {
-// 			p.buf.writeByte(' ')
-// 		}
-// 		p.printArg('v')
-// 		prevString = isString
-// 	}
-// }
+// and places them into p.buf with appropriate spacing.
+func (p *printer) doappend(items []any) {
+	if len(items) == 0 {
+		return
+	}
+
+	var format strings.Builder
+	for i := range items {
+		if i > 0 {
+			format.WriteByte(' ')
+		}
+		format.WriteString("%v")
+	}
+
+	p.printf(format.String(), items)
+}
