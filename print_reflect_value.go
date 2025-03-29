@@ -126,7 +126,7 @@ func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
 		p.buf.writeByte('}')
 	case reflect.Pointer:
 		if v.IsNil() {
-			p.buf.writeString(nilParenString)
+			p.buf.writeString(nilAngleString)
 			return
 		}
 		p.buf.writeByte('&')
