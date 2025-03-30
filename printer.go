@@ -14,8 +14,8 @@ type printer struct {
 	value       reflect.Value
 	arg         any
 	visitedPtrs visited
-	wrappedErrs []int
-	fmt         fmt
+	// wrappedErrs []int
+	fmt fmt
 
 	// Frequently updated small fields
 	argNum int
@@ -38,6 +38,7 @@ func (p *printer) ArgIsString() bool {
 	_, ok := p.arg.(string)
 	return ok
 }
+
 func (p *printer) ArgIsBytes() bool {
 	_, ok := p.arg.([]byte)
 	return ok
@@ -146,8 +147,8 @@ func (p *printer) catchPanic(arg any, verb rune, method string) {
 	}
 }
 
-func (p *printer) writeNilArg(verb rune) {
-	p.buf.writeString(percentBangString)
-	p.buf.writeRune(verb)
-	p.buf.writeString(nilParenString)
-}
+// func (p *printer) writeNilArg(verb rune) {
+// 	p.buf.writeString(percentBangString)
+// 	p.buf.writeRune(verb)
+// 	p.buf.writeString(nilParenString)
+// }

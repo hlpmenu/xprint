@@ -1,24 +1,30 @@
 {
     "formatters": {
+        "enable": [
+            "gci",
+            "gofmt",
+            "gofumpt",
+            "goimports"
+        ],
         "exclusions": {
             "generated": "lax",
             "paths": [
                 "third_party$",
                 "builtin$",
-                "examples$",
-                ".*_test$"
+                "examples$"
+
             ]
         }
     },
     "run": {
+        "tests": false,
+        "allow-serial-runners": true,
         "allow-parallel-runners": true,
-        "concurrency": 4,
+        "concurrency": 16,
         "go": "1.24.1"
     },
     "version": "2",
-    "skip-packages": [
-        ".*_test$"
-    ],
+
     "linters": {
         "enable": [
             "bodyclose",
@@ -46,7 +52,12 @@
             "testpackage",
             "unconvert",
             "wastedassign",
-            "wrapcheck"
+            "wrapcheck",
+            "asasalint",
+            "copyloopvar",
+            "exhaustive",
+            "recvcheck",
+            "govet"
         ],
         "exclusions": {
             "generated": "lax",
@@ -56,12 +67,7 @@
                 "examples$",
                 ".*_test$"
             ],
-            "presets": [
-                "comments",
-                "common-false-positives",
-                "legacy",
-                "std-error-handling"
-            ],
+
             "rules": [
                 {
                     "linters": [
@@ -269,5 +275,8 @@
                 ]
             }
         }
+    },
+    "issues": {
+        "fix": false
     }
 }

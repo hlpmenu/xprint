@@ -11,6 +11,7 @@ type buffer []byte
 func (b *buffer) Len() int {
 	return len([]byte(*b))
 }
+
 func (b *buffer) LenMB() int {
 	return BtoMB(b.Len())
 }
@@ -22,6 +23,7 @@ func (b *buffer) write(p []byte) {
 func (b *buffer) writeString(s string) {
 	*b = append(*b, s...)
 }
+
 func (b *buffer) writeStringToUpper(s string) {
 	*b = append(*b, strings.ToUpper(s)...)
 }
@@ -33,6 +35,7 @@ func (b *buffer) writeByte(c byte) {
 func (b *buffer) writeRune(r rune) {
 	*b = utf8.AppendRune(*b, r)
 }
+
 func BtoMB(b int) int {
 	return b / 1024 / 1024
 }
@@ -43,5 +46,4 @@ func (b *buffer) writeNilArg(verb rune) {
 	*b = append(*b, '(')
 	*b = append(*b, nilAngleString...)
 	*b = append(*b, ')')
-
 }

@@ -95,3 +95,6 @@ coverage/
 # Built Visual Studio Code Extensions
 *.vsi
 
+coverage.txt
+*.sarif
+diff.log

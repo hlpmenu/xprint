@@ -1,9 +1,5 @@
 package xprint
 
-import (
-	"reflect"
-)
-
 // doPrintf is the core printf implementation. It formats into p.buf.
 func (p *printer) printf(format string, args []any) {
 	end := len(format)
@@ -21,10 +17,10 @@ func (p *printer) printf(format string, args []any) {
 			p.buf = append(p.buf, format[lasti:i]...)
 		}
 
-		switch end <= i {
-		case true:
-			break
-		}
+		// switch end <= i {
+		// case true:
+		// 	break
+		// }
 
 		// Process one verb
 		i++
@@ -37,21 +33,25 @@ func (p *printer) printf(format string, args []any) {
 		}
 
 		p.fmt.clearflags()
-		var c int
+
 		// Handle flags
 		for i < end {
-			c++
 			current := format[i]
+			var next byte
+			if i+1 < end {
+				next = format[i+1]
+			}
+
 			switch {
-			case current == '#' && len(format) >= i+1 && format[i+1] != 'v':
+			case current == '#' && end >= i+1 && next != 'v':
 				p.fmt.sharp = true
-			case current == '#' && len(format) >= i+1 && format[i+1] == 'v':
+			case current == '#' && end >= i+1 && next == 'v':
 				p.fmt.sharpV = true
 			case current == '0':
 				p.fmt.zero = true
-			case current == '+' && len(format) >= i+1 && format[i+1] != 'v':
+			case current == '+' && end >= i+1 && next != 'v':
 				p.fmt.plus = true
-			case current == '+' && len(format) >= i+1 && format[i+1] == 'v':
+			case current == '+' && end >= i+1 && next == 'v':
 				p.fmt.plusV = true
 			case current == '-':
 				p.fmt.minus = true
@@ -63,9 +63,9 @@ func (p *printer) printf(format string, args []any) {
 			i++
 		}
 	flags_done:
-		if i >= end || p.argNum >= len(args) {
+		if i >= end || p.argNum >= lenOfArgs {
 			p.buf.writeString(percentBangString)
-			p.buf.writeRune(rune(format[i]))
+			p.buf.writeByte(format[i])
 			p.buf.writeString(missingString)
 			break
 		}
@@ -117,7 +117,6 @@ func (p *printer) printf(format string, args []any) {
 			}
 		}
 
-		var lastIteration bool
 		if i >= end {
 			p.buf.writeString(noVerbString)
 			break
@@ -125,10 +124,6 @@ func (p *printer) printf(format string, args []any) {
 
 		p.verb = rune(format[i])
 		i++
-
-		if i == end {
-			lastIteration = true
-		}
 
 		// Handle argument
 		if p.argNum >= lenOfArgs {
@@ -193,18 +188,16 @@ func (p *printer) printf(format string, args []any) {
 			}
 			p.printArg()
 		case 't':
-			p.printBool(p.arg)
+			p.printBool()
 		case 'T':
 			p.printReflectType(p.arg)
 		case 'p':
-			p.fmtPointer(reflect.ValueOf(p.arg), p.verb)
+			p.fmtPointer(p.arg, p.verb)
 		default:
 			p.buf.writeString(percentBangString)
 			p.buf.writeRune(p.verb)
 			p.buf.writeString(noVerbString)
-			if lastIteration {
-				break
-			}
+
 		}
 	}
 }

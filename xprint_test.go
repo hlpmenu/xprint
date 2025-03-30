@@ -4,10 +4,22 @@ import (
 	"bytes"
 	"fmt"
 	"testing"
+	"time"
+	"unsafe"
 
 	"gopkg.hlmpn.dev/pkg/xprint"
 )
 
+func strptr(s string) *string {
+	return &s
+}
+
+func boolPtr(b bool) *bool {
+	return &b
+}
+func intPtr(i int) *int {
+	return &i
+}
 func TestAppend(t *testing.T) {
 	TestAppendString(t)
 	TestAppendMultipleArgs(t)
@@ -158,5 +170,59 @@ func TestPrintfComplex(t *testing.T) {
 				t.Errorf("Expected %s, got %s", fo, o)
 			}
 		})
+	}
+}
+
+func TestPtrsExtra(t *testing.T) {
+	testCases := []struct {
+		name string
+		arg  any
+	}{
+		{"ptr", unsafe.Pointer(nil)},
+		{"uintptr", uintptr(0)},
+		{"*string", new(string)},
+		{"*int", new(int)},
+		{"*int8", new(int8)},
+		{"*int16", new(int16)},
+		{"*int32", new(int32)},
+		{"*int64", new(int64)},
+		{"*uint", new(uint)},
+		{"*uint8", new(uint8)},
+		{"*uint16", new(uint16)},
+		{"*uint32", new(uint32)},
+		{"*uint64", new(uint64)},
+		{"*float32", new(float32)},
+		{"*float64", new(float64)},
+		{"*complex64", new(complex64)},
+		{"*complex128", new(complex128)},
+		{"*bool", new(bool)},
+		{"*struct{}", new(struct{})},
+		{"*interface{}", new(interface{})},
+		{"*struct{hello string}", new(struct{ hello string })},
+		{"*[]any{hello, 2}", []*int{intPtr(1), intPtr(2)}},
+		{"*time.Time", time.Now()},
+		{"time.Time", time.Now()},
+		{"*time.Duration", time.Second},
+		{"iter.seq2", []*int{intPtr(1), intPtr(2)}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Logf("name: %s", tc.name)
+			o := xprint.Printf("Pointer: %v", tc.arg)
+			fo := fmt.Sprintf("Pointer: %v", tc.arg)
+			if o != fo {
+				t.Errorf("Expected %s, got %s", fo, o)
+			}
+		})
+	}
+}
+
+func TestNilUnsafePtr(t *testing.T) {
+	var nilPtr = unsafe.Pointer(nil)
+	o := xprint.Printf("Nil pointer: %v", nilPtr)
+	fo := fmt.Sprintf("Nil pointer: %v", nilPtr)
+	if o != fo {
+		t.Errorf("Expected %s, got %s", fo, o)
 	}
 }

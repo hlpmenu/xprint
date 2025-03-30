@@ -1,14 +1,20 @@
 package xprint
 
 import (
+	"log"
+
 	reflect "github.com/goccy/go-reflect"
 )
 
 // printValue is similar to printArg but starts with a reflect value, not an interface{} value.
 func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
+	vt := v
+	log.Printf("vt: %s", vt.String())
+	kind := vt.Kind()
+	log.Printf("kind: %s", kind.String())
+
 	// Handle nil
 	if !v.IsValid() {
-		p.buf.writeString(nilAngleString)
 		return
 	}
 
@@ -16,6 +22,7 @@ func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
 	if !p.recursing && (v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface) {
 		ptr := v.Pointer()
 		if ptr != 0 && p.visitedPtrs.visit(ptr) {
+
 			// Already seen this pointer, print type and address
 			p.buf.writeByte('&')
 			p.buf.writeString(v.Type().String())
@@ -30,7 +37,9 @@ func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
 		if (v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface || v.Kind() == reflect.Slice) && v.IsNil() {
 			p.buf.writeString(v.Type().String())
 			p.buf.writeString(nilParenString)
+
 			return
+
 		}
 		// Print type for other values
 		p.buf.writeString(v.Type().String())
@@ -46,6 +55,11 @@ func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
 	p.recursing = true
 	defer func() { p.recursing = wasRecursing }()
 
+	log.Printf("kind: %s", kind.String())
+	switch {
+	case v.Kind() == reflect.Ptr:
+	}
+
 	// Handle common types
 	switch v.Kind() {
 	case reflect.Bool:
@@ -57,6 +71,7 @@ func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
 	case reflect.Float32, reflect.Float64:
 		p.printFloat(v, verb)
 	case reflect.String:
+
 		p.fmt.fmtString(v.String())
 	case reflect.Slice:
 		if v.IsNil() {
@@ -109,7 +124,6 @@ func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
 		}
 		p.buf.writeByte(']')
 	case reflect.Struct:
-
 		p.buf.writeByte('{')
 		for i := 0; i < v.NumField(); i++ { //nolint:all //
 			if i > 0 {
@@ -130,8 +144,9 @@ func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
 			p.buf.writeString(nilAngleString)
 			return
 		}
-		p.buf.writeByte('&')
-		p.printValue(v.Elem(), verb, prec)
+
+		//	p.buf.writeByte('&')
+		p.fmtPointer(p.arg, verb)
 	case reflect.Interface:
 		if v.IsNil() {
 			p.buf.writeString(nilAngleString)

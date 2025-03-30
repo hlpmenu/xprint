@@ -390,12 +390,13 @@ func TestAppendfBytes(t *testing.T) {
 }
 
 func TestAppendfPointers(t *testing.T) {
+	TestAppendfStrPtr(t)
+	TestAppendfNilPtr(t)
+}
+func TestAppendfStrPtr(t *testing.T) {
 	// Regular pointer
 	str := "pointer test"
 	strPtr := &str
-
-	// Nil pointer
-	var nilPtr *string
 
 	t.Run("regular pointer", func(t *testing.T) {
 		o := xprint.Appendf([]byte("Pointer: "), "%p", strPtr)
@@ -404,6 +405,11 @@ func TestAppendfPointers(t *testing.T) {
 			t.Errorf("Expected %s, got %s", fo, o)
 		}
 	})
+}
+
+func TestAppendfNilPtr(t *testing.T) {
+	// Nil pointer
+	var nilPtr *string
 
 	t.Run("nil pointer", func(t *testing.T) {
 		o := xprint.Appendf([]byte("Nil pointer: "), "%v", nilPtr)

@@ -1,7 +1,9 @@
 package xprint
 
 import (
+	"log"
 	"strconv"
+	"unsafe"
 
 	reflect "github.com/goccy/go-reflect"
 )
@@ -27,7 +29,7 @@ func (p *printer) printArg() {
 		p.printReflectType(p.arg)
 		return
 	case 't':
-		p.printBool(p.arg)
+		p.printBool()
 		return
 	case 'p':
 		p.fmtPointer(reflect.ValueOf(p.arg), p.verb)
@@ -43,7 +45,7 @@ func (p *printer) printArg() {
 			if width > 0 {
 				// Left padding (right-aligned)
 				if !p.fmt.minus {
-					for i := 0; i < width; i++ {
+					for range width {
 						p.buf.writeByte(' ')
 					}
 				}
@@ -51,7 +53,7 @@ func (p *printer) printArg() {
 				p.buf.writeString(v)
 				// Right padding (left-aligned)
 				if p.fmt.minus {
-					for i := 0; i < width; i++ {
+					for range width {
 						p.buf.writeByte(' ')
 					}
 				}
@@ -65,7 +67,7 @@ func (p *printer) printArg() {
 	case bool:
 		switch p.verb {
 		case 't':
-			p.printBool(v)
+			p.printBool()
 		case 's':
 			boolstr := percentBangString + "s(" + "bool" + "=" + strconv.FormatBool(v) + ")"
 			p.buf = append(p.buf, boolstr...)
@@ -102,7 +104,12 @@ func (p *printer) printArg() {
 
 	case uintptr:
 		p.fmtUintptr()
-
+	case *string:
+		log.Printf("printarg: match *string")
+		p.fmtPointer(p.arg, p.verb)
+	case *int, *int8, *int16, *int32, *int64, *uint, *uint8, *uint16, *uint32, *uint64, *uintptr, *float32, *float64, *complex64, *complex128, *bool, *struct{}, *interface{}:
+		log.Printf("printarg: match other ptr")
+		p.fmtPointer(p.arg, p.verb)
 	case float32:
 		// If precision is explicitly specified, use printFloat
 		// Otherwise use our specialized formatter with proper defaults
@@ -121,13 +128,27 @@ func (p *printer) printArg() {
 		}
 	case complex64, complex128:
 		p.printComplex(v, p.verb)
-	default:
-		if p.handleMethods(p.verb) {
+	case unsafe.Pointer:
+		log.Printf("printarg: match unsafe.Pointer")
+		if v == nil {
+			p.buf.writeString(nilAngleString)
 			return
 		}
 
-		p.value = reflect.ValueOf(p.arg)
-		p.printValue(p.value, p.verb, 0)
+	default:
+		log.Printf("printarg: match default")
+		if p.handleMethods(p.verb) {
+
+			return
+		}
+
+		// Handle case where p.arg is already a reflect.Value
+		if rv, ok := p.arg.(reflect.Value); ok {
+			p.printValue(rv, p.verb, 0)
+			return
+		}
+
+		p.printValue(reflect.ValueOf(p.arg), p.verb, 0)
 	}
 }
 
