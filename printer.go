@@ -1,9 +1,10 @@
 package xprint
 
 import (
-	"reflect"
 	"strconv"
 	"sync"
+
+	reflect "github.com/goccy/go-reflect"
 )
 
 // pp is used to store a printer's state
@@ -131,7 +132,7 @@ func (p *printer) printFloat(v any, verb rune) {
 func (p *printer) catchPanic(arg any, verb rune, method string) {
 	if err := recover(); err != nil {
 		// If it's a nil pointer, just say "<nil>"
-		if v := reflect.ValueOf(arg); v.Kind() == reflect.Pointer && v.IsNil() {
+		if v := reflect.ValueOf(arg); v.Kind() == reflect.Ptr && v.IsNil() {
 			p.buf.writeString(nilAngleString)
 			return
 		}

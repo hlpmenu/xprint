@@ -1,7 +1,7 @@
 package xprint
 
 import (
-	"reflect"
+	reflect "github.com/goccy/go-reflect"
 )
 
 // printValue is similar to printArg but starts with a reflect value, not an interface{} value.
@@ -13,7 +13,7 @@ func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
 	}
 
 	// Check for recursive pointer/interface values
-	if !p.recursing && (v.Kind() == reflect.Pointer || v.Kind() == reflect.Interface) {
+	if !p.recursing && (v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface) {
 		ptr := v.Pointer()
 		if ptr != 0 && p.visitedPtrs.visit(ptr) {
 			// Already seen this pointer, print type and address
@@ -27,7 +27,7 @@ func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
 	// Handle special cases for verb 'v' with sharp flag
 	if verb == 'v' && p.fmt.sharpV {
 		// Print type for nil pointer/interface/slice
-		if (v.Kind() == reflect.Pointer || v.Kind() == reflect.Interface || v.Kind() == reflect.Slice) && v.IsNil() {
+		if (v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface || v.Kind() == reflect.Slice) && v.IsNil() {
 			p.buf.writeString(v.Type().String())
 			p.buf.writeString(nilParenString)
 			return
@@ -109,6 +109,7 @@ func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
 		}
 		p.buf.writeByte(']')
 	case reflect.Struct:
+
 		p.buf.writeByte('{')
 		for i := 0; i < v.NumField(); i++ { //nolint:all //
 			if i > 0 {
@@ -124,7 +125,7 @@ func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
 			}
 		}
 		p.buf.writeByte('}')
-	case reflect.Pointer:
+	case reflect.Ptr:
 		if v.IsNil() {
 			p.buf.writeString(nilAngleString)
 			return

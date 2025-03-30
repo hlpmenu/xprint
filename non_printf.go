@@ -1,8 +1,9 @@
 package xprint
 
 import (
-	"reflect"
 	"strconv"
+
+	reflect "github.com/goccy/go-reflect"
 )
 
 func (p *printer) print(args []any) {
@@ -36,13 +37,71 @@ func (p *printer) print(args []any) {
 				p.buf.writeString("false")
 			}
 			lastWasString = false
-		case int, int8, int16, int32, int64:
+		case int:
 			p.fmt.uintbase = 10
-			p.printInt(v, 'v')
+			p.arg = v
+			p.verb = 'v'
+			p.fmtInt()
 			lastWasString = false
-		case uint, uint8, uint16, uint32, uint64, uintptr:
+		case int8:
 			p.fmt.uintbase = 10
-			p.printInt(v, 'v')
+			p.arg = v
+			p.verb = 'v'
+			p.fmtInt8()
+			lastWasString = false
+		case int16:
+			p.fmt.uintbase = 10
+			p.arg = v
+			p.verb = 'v'
+			p.fmtInt16()
+			lastWasString = false
+		case int32:
+			p.fmt.uintbase = 10
+			p.arg = v
+			p.verb = 'v'
+			p.fmtInt32()
+			lastWasString = false
+		case int64:
+			p.fmt.uintbase = 10
+			p.arg = v
+			p.verb = 'v'
+			p.fmtInt64()
+			lastWasString = false
+		case uint:
+			p.fmt.uintbase = 10
+			p.arg = v
+			p.verb = 'v'
+			p.fmtUint()
+			lastWasString = false
+		case uint8:
+			p.fmt.uintbase = 10
+			p.arg = v
+			p.verb = 'v'
+			p.fmtUint8()
+			lastWasString = false
+		case uint16:
+			p.fmt.uintbase = 10
+			p.arg = v
+			p.verb = 'v'
+			p.fmtUint16()
+			lastWasString = false
+		case uint32:
+			p.fmt.uintbase = 10
+			p.arg = v
+			p.verb = 'v'
+			p.fmtUint32()
+			lastWasString = false
+		case uint64:
+			p.fmt.uintbase = 10
+			p.arg = v
+			p.verb = 'v'
+			p.fmtUint64()
+			lastWasString = false
+		case uintptr:
+			p.fmt.uintbase = 10
+			p.arg = v
+			p.verb = 'v'
+			p.fmtUintptr()
 			lastWasString = false
 		case float32:
 			p.printFloat32(v, 'v')

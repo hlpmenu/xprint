@@ -1,8 +1,9 @@
 package xprint
 
 import (
-	"reflect"
 	"strconv"
+
+	reflect "github.com/goccy/go-reflect"
 )
 
 // printArg formats arg in the manner specified by the verb
@@ -70,82 +71,38 @@ func (p *printer) printArg() {
 			p.buf = append(p.buf, boolstr...)
 		}
 	case int:
-		str := p.printIntFast(v)
-		if p.fmt.toupper {
-			p.buf.writeStringToUpper(str)
-		} else {
-			p.buf.writeString(str)
-		}
+		p.fmtInt()
+
 	case int8:
-		str := p.printInt8Fast(v)
-		if p.fmt.toupper {
-			p.buf.writeStringToUpper(str)
-		} else {
-			p.buf.writeString(str)
-		}
+		p.fmtInt8()
+
 	case int16:
-		str := p.printInt16Fast(v)
-		if p.fmt.toupper {
-			p.buf.writeStringToUpper(str)
-		} else {
-			p.buf.writeString(str)
-		}
+		p.fmtInt16()
+
 	case int32:
-		str := p.printInt32Fast(v)
-		if p.fmt.toupper {
-			p.buf.writeStringToUpper(str)
-		} else {
-			p.buf.writeString(str)
-		}
+		p.fmtInt32()
+
 	case int64:
-		str := p.printInt64Fast(v)
-		if p.fmt.toupper {
-			p.buf.writeStringToUpper(str)
-		} else {
-			p.buf.writeString(str)
-		}
+		p.fmtInt64()
+
 	case uint:
-		str := strconv.FormatUint(uint64(v), p.fmt.uintbase)
-		if p.fmt.toupper {
-			p.buf.writeStringToUpper(str)
-		} else {
-			p.buf.writeString(str)
-		}
+		p.fmtUint()
+
 	case uint8:
-		str := strconv.FormatUint(uint64(v), p.fmt.uintbase)
-		if p.fmt.toupper {
-			p.buf.writeStringToUpper(str)
-		} else {
-			p.buf.writeString(str)
-		}
+		p.fmtUint8()
+
 	case uint16:
-		str := strconv.FormatUint(uint64(v), p.fmt.uintbase)
-		if p.fmt.toupper {
-			p.buf.writeStringToUpper(str)
-		} else {
-			p.buf.writeString(str)
-		}
+		p.fmtUint16()
+
 	case uint32:
-		str := strconv.FormatUint(uint64(v), p.fmt.uintbase)
-		if p.fmt.toupper {
-			p.buf.writeStringToUpper(str)
-		} else {
-			p.buf.writeString(str)
-		}
+		p.fmtUint32()
+
 	case uint64:
-		str := strconv.FormatUint(v, p.fmt.uintbase)
-		if p.fmt.toupper {
-			p.buf.writeStringToUpper(str)
-		} else {
-			p.buf.writeString(str)
-		}
+		p.fmtUint64()
+
 	case uintptr:
-		str := strconv.FormatUint(uint64(v), p.fmt.uintbase)
-		if p.fmt.toupper {
-			p.buf.writeStringToUpper(str)
-		} else {
-			p.buf.writeString(str)
-		}
+		p.fmtUintptr()
+
 	case float32:
 		// If precision is explicitly specified, use printFloat
 		// Otherwise use our specialized formatter with proper defaults
