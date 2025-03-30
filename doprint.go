@@ -147,13 +147,11 @@ func (p *printer) printf(format string, args []any) {
 
 		if p.ArgIsString() && p.verb == 's' && p.verb != 'T' && !p.fmt.widPresent {
 			// Fast path: string value with no width formatting, use direct concatenation
-			//p.buf = append(p.buf, p.arg.(string)...) //nolint:forcetypeassert //
-			p.buf.writeString(p.arg.(string))
+			p.buf = append(p.buf, p.arg.(string)...) //nolint:forcetypeassert //
 			continue
 		} else if p.ArgIsBytes() && p.verb == 's' && p.verb != 'T' && !p.fmt.widPresent {
 			// Fast path: byte slice value with no width formatting, use direct concatenation
-			//p.buf = append(p.buf, p.arg.([]byte)...) //nolint:forcetypeassert //
-			p.buf.write(p.arg.([]byte))
+			p.buf = append(p.buf, p.arg.([]byte)...) //nolint:forcetypeassert //
 			continue
 		}
 		p.fmt.uintbase = 10
