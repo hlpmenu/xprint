@@ -130,3 +130,29 @@ func (p *printer) printArg() {
 		p.printValue(p.value, p.verb, 0)
 	}
 }
+
+func (p *printer) handleMethods(verb rune) bool {
+	if err, ok := p.arg.(error); ok {
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					p.catchPanic(r, verb, "Error")
+				}
+			}()
+			p.fmt.fmtString(err.Error())
+		}()
+		return true
+	}
+	if stringer, ok := p.arg.(Stringer); ok {
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					p.catchPanic(r, verb, "Stringer")
+				}
+			}()
+			p.fmt.fmtString(stringer.String())
+		}()
+		return true
+	}
+	return false
+}

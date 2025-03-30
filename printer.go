@@ -9,29 +9,25 @@ import (
 
 // pp is used to store a printer's state
 type printer struct {
-	buf   buffer
-	arg   any
-	value reflect.Value
-	fmt   fmt
-	// Track recursive pointer formatting
+	// Big fields first
+	buf         buffer
+	value       reflect.Value
+	arg         any
 	visitedPtrs visited
-	recursing   bool
-	// reordered records whether the format string used argument reordering.
-	reordered bool //nolint:unused //
-	// goodArgNum records whether the most recent reordering directive was valid.
-	goodArgNum bool //nolint:unused //
-	// panicking is set by catchPanic to avoid infinite panic, recover, panic, ... recursion.
-	panicking bool //nolint:unused //
-	// erroring is set when printing an error string to guard against calling handleMethods.
-	erroring bool //nolint:unused //
-	// wrapErrs is set when the format string may contain a %w verb.
-	wrapErrs bool //nolint:unused //
-	// wrappedErrs records the targets of the %w verb.
-	wrappedErrs []int //nolint:unused //
-	// argNum tracks the current argument number being processed
+	wrappedErrs []int
+	fmt         fmt
+
+	// Frequently updated small fields
 	argNum int
-	// verb is the current format verb being processed
-	verb rune
+	verb   rune
+
+	// Grouped booleans
+	recursing  bool
+	reordered  bool //nolint:unused
+	goodArgNum bool //nolint:unused
+	panicking  bool //nolint:unused
+	erroring   bool //nolint:unused
+	wrapErrs   bool //nolint:unused
 }
 
 // func (p *printer) argAsString() string {
@@ -148,35 +144,6 @@ func (p *printer) catchPanic(arg any, verb rune, method string) {
 		p.printArg()
 		p.buf.writeByte(')')
 	}
-}
-
-func (p *printer) handleMethods(verb rune) bool {
-	// Handle error values
-	if err, ok := p.arg.(error); ok {
-		defer p.catchPanic(p.arg, verb, "Error")
-		p.fmt.fmtString(err.Error())
-		return true
-	}
-
-	// Handle GoStringer for %#v
-	if p.fmt.sharpV {
-		if stringer, ok := p.arg.(GoStringer); ok {
-			defer p.catchPanic(p.arg, verb, "GoString")
-			p.fmt.fmtString(stringer.GoString())
-			return true
-		}
-	}
-
-	// Handle Stringer for %v, %s
-	if verb == 'v' || verb == 's' {
-		if stringer, ok := p.arg.(Stringer); ok {
-			defer p.catchPanic(p.arg, verb, "String")
-			p.fmt.fmtString(stringer.String())
-			return true
-		}
-	}
-
-	return false
 }
 
 func (p *printer) writeNilArg(verb rune) {
