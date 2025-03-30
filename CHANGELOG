@@ -1,0 +1,55 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Changed
+- Major improvements to reflect functionality
+- Enhanced test suite and validation
+- Optimized performance for various formatting scenarios
+
+### Fixed
+- Multiple fixes to core formatting logic
+- Improved error handling and edge cases
+- Enhanced compatibility with stdlib fmt
+
+## [v0.0.4] - 2025-03-07
+
+### Fixed
+- Optimized float formatting implementation
+- Improved precision handling for floating-point numbers
+- Enhanced float formatting test suite with comprehensive precision tests
+- Added detailed output for float formatting behavior validation
+
+## [v0.0.3] - 2025-03-07
+
+### Changed
+- Enhanced test-floats functionality with detailed output
+- Improved float formatting behavior reporting
+- Added comprehensive float formatting test suite
+- Added new validation test cases for float precision
+- Enhanced error reporting in float formatting tests
+
+## [v0.0.2] - 2025-03-07
+
+### Fixed
+- Removed debug logging statements
+- Cleaned up codebase
+- Fixed pointer formatting issues
+- Improved error handling in print_types.go
+
+## [v0.0.1] - 2025-03-05
+
+### Added
+- Initial release
+- Basic fmt package compatibility
+- Core formatting functionality
+- Basic test suite
+- Float formatting support
+- Complex number formatting support
+- Pointer formatting support
+- Basic validation framework
