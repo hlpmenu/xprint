@@ -1,11 +1,5 @@
 package xprint
 
-import (
-	"log"
-
-	"gopkg.hlmpn.dev/pkg/xprint/internal/debug"
-)
-
 // doPrintf is the core printf implementation. It formats into p.buf.
 func (p *printer) printf(format string, args []any) {
 	end := len(format)
@@ -29,8 +23,6 @@ func (p *printer) printf(format string, args []any) {
 		}
 
 		// Process one verb
-		debug.LogD("indx:", i)
-		debug.Log("increased indx")
 
 		i++
 
@@ -38,8 +30,6 @@ func (p *printer) printf(format string, args []any) {
 		if i < end && format[i] == '%' {
 			p.buf = append(p.buf, '%')
 			i++
-			debug.LogD("indx:", i)
-			debug.Log("increased indx")
 			continue
 		}
 
@@ -69,19 +59,14 @@ func (p *printer) printf(format string, args []any) {
 			case current == ' ':
 				p.fmt.space = true
 			default:
-				debug.Trigger("default case hit: goto flags_done")
 
 				goto flags_done
 			}
-			debug.LogD("indx:", i)
-			debug.Log("increased indx")
 			i++
 
 		}
 
 	flags_done:
-		log.Printf("end: %d, argnum: %d, len(args): %d, index: %d", end, p.argNum, len(args), i)
-		debug.LogD("indx:", i)
 
 		if i >= end || p.argNum >= len(args) {
 			p.buf.writeString(percentBangString)
