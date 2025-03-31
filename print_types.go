@@ -12,7 +12,7 @@ func (p *printer) fmtPointer(value any, verb rune) {
 		p.buf.writeString(nilAngleString)
 		return
 	}
-
+	unknownType := false
 	switch v := value.(type) {
 	case unsafe.Pointer:
 		if v == nil {
@@ -69,43 +69,41 @@ func (p *printer) fmtPointer(value any, verb rune) {
 	case reflect.Value:
 
 	default:
-		switch verb {
-		case 's', 'p', 'v':
-			// Do nothing
-		default:
-			p.buf.writeString(nilParenString)
-			return
-		}
+		unknownType = true
 	}
 
-	if reflect.TypeOf(value).Kind() == reflect.Ptr && reflect.TypeOf(value).Elem().Kind() == reflect.Struct {
-		if verb == 'v' {
-			p.buf.writeByte('&')
-			p.buf.writeByte('{')
-			// Print fields here
-			p.buf.writeByte('}')
-			return
-		} else if verb == 's' {
-			p.buf.writeString(reflect.TypeOf(value).String())
-			return
-		}
-	}
+	typ := reflect.TypeOf(value)
+	isStructPtr := typ.Kind() == reflect.Ptr && typ.Elem().Kind() == reflect.Struct
+	ptrIsNil := u == 0
 
-	if u == 0 {
-		switch p.verb {
-		case 'v':
-			p.buf.writeString(nilAngleString)
-			return
-		case 's':
-			p.buf.writeString(percentBangString)              // %!
-			p.buf.writeByte('s')                              // s
-			p.buf.writeByte('(')                              // (
-			p.buf.writeString(reflect.TypeOf(value).String()) // *string
-			p.buf.writeByte('=')                              // =
-			p.buf.writeString(nilAngleString)                 // <nil>
-			p.buf.writeByte(')')                              // )
-			return
-		}
+	switch {
+	case unknownType && verb != 's' && verb != 'p' && verb != 'v':
+		p.buf.writeString(nilParenString)
+		return
+	case isStructPtr && verb == 'v':
+		p.buf.writeByte('&')
+		p.buf.writeByte('{')
+		// Print fields here
+		p.buf.writeByte('}')
+		return
+
+	case isStructPtr && verb == 's':
+		p.buf.writeString(typ.String())
+		return
+
+	case ptrIsNil && verb == 'v':
+		p.buf.writeString(nilAngleString)
+		return
+
+	case ptrIsNil && verb == 's':
+		p.buf.writeString(percentBangString) // %!
+		p.buf.writeByte('s')                 // s
+		p.buf.writeByte('(')                 // (
+		p.buf.writeString(typ.String())      // *T
+		p.buf.writeByte('=')                 // =
+		p.buf.writeString(nilAngleString)    // <nil>
+		p.buf.writeByte(')')                 // )
+		return
 	}
 
 	p.buf.writeByte('0')

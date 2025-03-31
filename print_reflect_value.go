@@ -109,7 +109,7 @@ func (p *printer) printValue(v reflect.Value, verb rune, prec int) {
 		p.buf.writeByte(']')
 	case reflect.Struct:
 		p.buf.writeByte('{')
-		for i := 0; i < v.NumField(); i++ {
+		for i := range v.NumField() {
 			if i > 0 {
 				p.buf.writeByte(' ')
 			}

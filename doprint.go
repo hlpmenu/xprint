@@ -1,5 +1,11 @@
 package xprint
 
+import (
+	"log"
+
+	"gopkg.hlmpn.dev/pkg/xprint/internal/debug"
+)
+
 // doPrintf is the core printf implementation. It formats into p.buf.
 func (p *printer) printf(format string, args []any) {
 	end := len(format)
@@ -17,45 +23,39 @@ func (p *printer) printf(format string, args []any) {
 			p.buf = append(p.buf, format[lasti:i]...)
 		}
 
-		// switch end <= i {
-		// case true:
-		// 	break
-		// }
+		switch end <= i {
+		case true:
+			break
+		}
 
 		// Process one verb
+		debug.LogD("indx:", i)
+		debug.Log("increased indx")
+
 		i++
 
 		// Handle %% case
 		if i < end && format[i] == '%' {
 			p.buf = append(p.buf, '%')
 			i++
+			debug.LogD("indx:", i)
+			debug.Log("increased indx")
 			continue
 		}
 
 		p.fmt.clearflags()
 
-		// Handle flags
 		for i < end {
-			current := format[i]
-			var next byte
-			if i+1 < end {
-				next = format[i+1]
-			}
-
-			switch {
-			case current == '#' && end >= i+1 && next != 'v':
+			switch format[i] {
+			case '#':
 				p.fmt.sharp = true
-			case current == '#' && end >= i+1 && next == 'v':
-				p.fmt.sharpV = true
-			case current == '0':
+			case '0':
 				p.fmt.zero = true
-			case current == '+' && end >= i+1 && next != 'v':
+			case '+':
 				p.fmt.plus = true
-			case current == '+' && end >= i+1 && next == 'v':
-				p.fmt.plusV = true
-			case current == '-':
+			case '-':
 				p.fmt.minus = true
-			case current == ' ':
+			case ' ':
 				p.fmt.space = true
 			default:
 				goto flags_done
@@ -63,9 +63,11 @@ func (p *printer) printf(format string, args []any) {
 			i++
 		}
 	flags_done:
-		if i >= end || p.argNum >= lenOfArgs {
+		log.Printf("end: %d, argnum: %d, len(args): %d, index: %d", end, p.argNum, len(args), i)
+		debug.LogD("indx:", i)
+		if i >= end || p.argNum >= len(args) {
 			p.buf.writeString(percentBangString)
-			p.buf.writeByte(format[i])
+			p.buf.writeRune(rune(format[i]))
 			p.buf.writeString(missingString)
 			break
 		}
@@ -73,7 +75,7 @@ func (p *printer) printf(format string, args []any) {
 
 		if i < end && format[i] == '*' {
 			i++
-			if p.argNum >= lenOfArgs {
+			if p.argNum >= len(args) {
 				p.buf.writeString(missingString)
 				break
 			}
@@ -126,7 +128,7 @@ func (p *printer) printf(format string, args []any) {
 		i++
 
 		// Handle argument
-		if p.argNum >= lenOfArgs {
+		if p.argNum >= len(args) {
 			p.buf.writeString(missingString)
 			break
 		}
