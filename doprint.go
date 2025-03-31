@@ -45,29 +45,50 @@ func (p *printer) printf(format string, args []any) {
 
 		p.fmt.clearflags()
 
+		// Handle flags
 		for i < end {
-			switch format[i] {
-			case '#':
+			current := format[i]
+			var next byte
+			if i+1 < end {
+				next = format[i+1]
+			}
+
+			switch {
+			case current == '#' && end >= i+1 && next != 'v':
 				p.fmt.sharp = true
-			case '0':
+			case current == '#' && end >= i+1 && next == 'v':
+				p.fmt.sharpV = true
+			case current == '0':
 				p.fmt.zero = true
-			case '+':
+			case current == '+' && end >= i+1 && next != 'v':
 				p.fmt.plus = true
-			case '-':
+			case current == '+' && end >= i+1 && next == 'v':
+				p.fmt.plusV = true
+			case current == '-':
 				p.fmt.minus = true
-			case ' ':
+			case current == ' ':
 				p.fmt.space = true
 			default:
+				debug.Trigger("default case hit: goto flags_done")
+
 				goto flags_done
 			}
+			debug.LogD("indx:", i)
+			debug.Log("increased indx")
 			i++
+
 		}
+
 	flags_done:
 		log.Printf("end: %d, argnum: %d, len(args): %d, index: %d", end, p.argNum, len(args), i)
 		debug.LogD("indx:", i)
+
 		if i >= end || p.argNum >= len(args) {
 			p.buf.writeString(percentBangString)
-			p.buf.writeRune(rune(format[i]))
+			if i < len(format) {
+
+				p.buf.writeRune(rune(format[i]))
+			}
 			p.buf.writeString(missingString)
 			break
 		}
