@@ -15,6 +15,7 @@ const (
 	mapString         = "map["
 	panicString       = "(PANIC="
 	extraString       = "%!(EXTRA "
+	uintToHexDigits   = "0123456789abcdef"
 
 	// invReflectString = "<invalid reflect.Value>"
 )

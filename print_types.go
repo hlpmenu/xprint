@@ -1,9 +1,9 @@
 package xprint
 
 import (
-	"log"
-	"reflect"
 	"unsafe"
+
+	reflect "github.com/goccy/go-reflect"
 )
 
 func (p *printer) fmtPointer(value any, verb rune) {
@@ -14,25 +14,19 @@ func (p *printer) fmtPointer(value any, verb rune) {
 	}
 
 	switch v := value.(type) {
-
 	case unsafe.Pointer:
-		log.Printf("triggeer unsafe.Pointer")
+		if v == nil {
+			p.buf.writeString(nilAngleString)
+			return
+		}
 		u = uintptr(v)
 	case uintptr:
-		log.Printf("triggeer uintptr")
-
-		u = v
+		u = uintptr(v)
 	case *string:
-
-		log.Printf("triggeer *string")
-		log.Printf("in *string: %p", reflect.TypeOf(v).String())
-
 		u = uintptr(unsafe.Pointer(v))
 	case *int:
-		log.Printf("triggeer *int")
 		u = uintptr(unsafe.Pointer(v))
 	case *int8:
-		log.Printf("triggeer *int8")
 		u = uintptr(unsafe.Pointer(v))
 	case *int16:
 		u = uintptr(unsafe.Pointer(v))
@@ -49,6 +43,8 @@ func (p *printer) fmtPointer(value any, verb rune) {
 	case *uint32:
 		u = uintptr(unsafe.Pointer(v))
 	case *uint64:
+		u = uintptr(unsafe.Pointer(v))
+	case *uintptr:
 		u = uintptr(unsafe.Pointer(v))
 	case *float32:
 		u = uintptr(unsafe.Pointer(v))
@@ -69,15 +65,14 @@ func (p *printer) fmtPointer(value any, verb rune) {
 		}
 		u = uintptr(unsafe.Pointer(v))
 	case *interface{}:
-		log.Printf("triggeer *interface{}")
 		u = uintptr(unsafe.Pointer(v))
+	case reflect.Value:
+
 	default:
-		log.Printf("default")
 		switch verb {
 		case 's', 'p', 'v':
-
+			// Do nothing
 		default:
-			log.Printf("default nested")
 			p.buf.writeString(nilParenString)
 			return
 		}
@@ -95,14 +90,8 @@ func (p *printer) fmtPointer(value any, verb rune) {
 			return
 		}
 	}
-	log.Printf("verb before u == 0: %v", verb)
+
 	if u == 0 {
-
-		refv := reflect.ValueOf(value)
-		kind := refv.Kind()
-		log.Printf("in if kind: %s", kind.String())
-
-		log.Printf("trigger if u == 0 && p.verb == 'u': %v p.verb: %v", u, p.verb)
 		switch p.verb {
 		case 'v':
 			p.buf.writeString(nilAngleString)
@@ -115,28 +104,23 @@ func (p *printer) fmtPointer(value any, verb rune) {
 			p.buf.writeByte('=')                              // =
 			p.buf.writeString(nilAngleString)                 // <nil>
 			p.buf.writeByte(')')                              // )
-
 			return
 		}
-
 	}
 
 	p.buf.writeByte('0')
 	p.buf.writeByte('x')
-	log.Printf("value: %d", u)
-	log.Printf("value: %d", u)
 
 	// Convert uintptr to hex
-	const digits = "0123456789abcdef"
 	buf := make([]byte, 16)
 	i := len(buf)
 	for u >= 16 {
 		i--
-		buf[i] = digits[u&0xF]
+		buf[i] = uintToHexDigits[u&0xF]
 		u >>= 4
 	}
 	i--
-	buf[i] = digits[u]
+	buf[i] = uintToHexDigits[u]
 	p.buf.write(buf[i:])
 }
 

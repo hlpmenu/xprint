@@ -1,7 +1,6 @@
 package xprint
 
 import (
-	"log"
 	"strconv"
 	"unsafe"
 
@@ -15,10 +14,8 @@ func (p *printer) printArg() {
 	if p.arg == nil {
 		switch p.verb {
 		case 'T', 'v':
-
 			p.buf.writeString(nilString)
 		default:
-
 			p.buf.writeNilArg(p.verb)
 		}
 		return
@@ -74,41 +71,27 @@ func (p *printer) printArg() {
 		}
 	case int:
 		p.fmtInt()
-
 	case int8:
 		p.fmtInt8()
-
 	case int16:
 		p.fmtInt16()
-
 	case int32:
 		p.fmtInt32()
-
 	case int64:
 		p.fmtInt64()
-
 	case uint:
 		p.fmtUint()
-
 	case uint8:
 		p.fmtUint8()
-
 	case uint16:
 		p.fmtUint16()
-
 	case uint32:
 		p.fmtUint32()
-
 	case uint64:
 		p.fmtUint64()
-
 	case uintptr:
 		p.fmtUintptr()
-	case *string:
-		log.Printf("printarg: match *string")
-		p.fmtPointer(p.arg, p.verb)
-	case *int, *int8, *int16, *int32, *int64, *uint, *uint8, *uint16, *uint32, *uint64, *uintptr, *float32, *float64, *complex64, *complex128, *bool, *struct{}, *interface{}:
-		log.Printf("printarg: match other ptr")
+	case *int, *int8, *int16, *int32, *int64, *uint, *uint8, *uint16, *uint32, *uint64, *uintptr, *float32, *float64, *complex64, *complex128, *bool, *struct{}, *interface{}, *string:
 		p.fmtPointer(p.arg, p.verb)
 	case float32:
 		// If precision is explicitly specified, use printFloat
@@ -129,16 +112,12 @@ func (p *printer) printArg() {
 	case complex64, complex128:
 		p.printComplex(v, p.verb)
 	case unsafe.Pointer:
-		log.Printf("printarg: match unsafe.Pointer")
 		if v == nil {
 			p.buf.writeString(nilAngleString)
 			return
 		}
-
 	default:
-		log.Printf("printarg: match default")
 		if p.handleMethods(p.verb) {
-
 			return
 		}
 
