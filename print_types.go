@@ -118,7 +118,7 @@ func (p *printer) fmtPointer(value any, verb rune) {
 
 			return
 		}
-		return
+
 	}
 
 	p.buf.writeByte('0')
