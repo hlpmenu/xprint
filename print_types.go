@@ -8,10 +8,11 @@ import (
 
 func (p *printer) fmtPointer(value any, verb rune) {
 	var u uintptr
-	if value == nil {
+	if value == nil && p.verb != 'v' {
 		p.buf.writeString(nilAngleString)
 		return
 	}
+
 	switch v := value.(type) {
 
 	case unsafe.Pointer:
@@ -24,7 +25,7 @@ func (p *printer) fmtPointer(value any, verb rune) {
 	case *string:
 
 		log.Printf("triggeer *string")
-		log.Printf("in *string: %p", reflect.TypeOf(v))
+		log.Printf("in *string: %p", reflect.TypeOf(v).String())
 
 		u = uintptr(unsafe.Pointer(v))
 	case *int:
@@ -74,7 +75,7 @@ func (p *printer) fmtPointer(value any, verb rune) {
 		log.Printf("default")
 		switch verb {
 		case 's', 'p', 'v':
-			log.Printf("trigger case s,p,v: %s", verb)
+
 		default:
 			log.Printf("default nested")
 			p.buf.writeString(nilParenString)
@@ -94,13 +95,35 @@ func (p *printer) fmtPointer(value any, verb rune) {
 			return
 		}
 	}
-	if u == 0 && verb != 'v' {
-		p.buf.writeString(nilAngleString)
+	log.Printf("verb before u == 0: %v", verb)
+	if u == 0 {
+
+		refv := reflect.ValueOf(value)
+		kind := refv.Kind()
+		log.Printf("in if kind: %s", kind.String())
+
+		log.Printf("trigger if u == 0 && p.verb == 'u': %v p.verb: %v", u, p.verb)
+		switch p.verb {
+		case 'v':
+			p.buf.writeString(nilAngleString)
+			return
+		case 's':
+			p.buf.writeString(percentBangString)              // %!
+			p.buf.writeByte('s')                              // s
+			p.buf.writeByte('(')                              // (
+			p.buf.writeString(reflect.TypeOf(value).String()) // *string
+			p.buf.writeByte('=')                              // =
+			p.buf.writeString(nilAngleString)                 // <nil>
+			p.buf.writeByte(')')                              // )
+
+			return
+		}
 		return
 	}
 
 	p.buf.writeByte('0')
 	p.buf.writeByte('x')
+	log.Printf("value: %d", u)
 	log.Printf("value: %d", u)
 
 	// Convert uintptr to hex

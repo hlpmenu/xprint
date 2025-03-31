@@ -418,6 +418,13 @@ func TestAppendfNilPtr(t *testing.T) {
 			t.Errorf("Expected %s, got %s", fo, o)
 		}
 	})
+	t.Run("nil pointer with verb 's'", func(t *testing.T) {
+		o := xprint.Appendf([]byte("Nil pointer: "), "%s", nilPtr)
+		fo := fmt.Appendf([]byte("Nil pointer: "), "%s", nilPtr)
+		if !bytes.Equal(o, fo) {
+			t.Errorf("Expected %s, got %s", fo, o)
+		}
+	})
 }
 
 func TestAppendfSlices(t *testing.T) {
